@@ -1,3 +1,4 @@
+
 buildscript{
     ext{
         arcHash = property("archash")
@@ -12,6 +13,7 @@ buildscript{
     }
     
     repositories{
+maven{url 'https://maven.aliyun.com/repository/public/'}
         mavenLocal()
         mavenCentral()
         google()
@@ -28,10 +30,12 @@ buildscript{
 plugins{
     id "org.jetbrains.kotlin.jvm" version "1.6.0"
     id "org.jetbrains.kotlin.kapt" version "1.6.0"
+id "eclipse"
 }
 
 allprojects{
     apply plugin: 'maven-publish'
+    apply plugin: 'eclipse'
     
     version = project.hasProperty("packageVersion") ? project.getProperty("packageVersion") : 'release'
     group = 'com.github.Anuken'
@@ -168,6 +172,7 @@ allprojects{
     }
 
     repositories{
+maven{url 'https://maven.aliyun.com/repository/public/'}
         mavenLocal()
         mavenCentral()
         maven{ url "https://oss.sonatype.org/content/repositories/snapshots/" }
@@ -372,7 +377,7 @@ project(":server"){
         implementation arcModule("backends:backend-headless")
     }
 }
-
+/*
 project(":tests"){
     apply plugin: "java"
 
@@ -408,7 +413,7 @@ project(":tools"){
         implementation arcModule("backends:backend-headless")
     }
 }
-
+*/
 project(":annotations"){
     apply plugin: "java-library"
 
