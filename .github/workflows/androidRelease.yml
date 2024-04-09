@@ -24,8 +24,14 @@ jobs:
       run: chmod +x gradlew
     - name: Build with Gradle
       run: ./gradlew android:assembleDebug
-    - name: Upload built jar file
-      uses: actions/upload-artifact@v2
+    - name: Create Release and Upload Release Asset
+      uses: softprops/action-gh-release@v1
       with:
+        tag_name: ${{ github.ref }}
+        name: Release ${{ github.ref }}
+        body: TODO New Release.
+        draft: false
+        prerelease: false
         name: ${{ github.event.repository.name }}
-        path: android/build/outputs/apk/debug/android-debug.apk
+        files: |
+         android/build/outputs/apk/debug/android-debug.apk
