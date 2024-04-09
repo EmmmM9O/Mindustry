@@ -377,7 +377,7 @@ project(":server"){
         implementation arcModule("backends:backend-headless")
     }
 }
-/*
+
 project(":tests"){
     apply plugin: "java"
 
@@ -413,7 +413,7 @@ project(":tools"){
         implementation arcModule("backends:backend-headless")
     }
 }
-*/
+
 project(":annotations"){
     apply plugin: "java-library"
 
