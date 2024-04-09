@@ -147,6 +147,7 @@ public class Vars implements Loadable {
             Color.valueOf("4b5ef1"),
             Color.valueOf("2cabfe"),
     };
+    public static Color extraColor = null;
     /** maximum TCP packet size */
     public static final int maxTcpSize = 900;
     /** default server port */

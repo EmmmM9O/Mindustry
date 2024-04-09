@@ -382,11 +382,19 @@ public class SettingsMenuDialog extends BaseDialog {
             }
         }
 
-        // if(!mobile){
         game.checkPref("console", false);
-        // }
-        game.textPref("ghApi", Vars.ghApi,str->{
-            Vars.ghApi=str;
+
+        game.textPref("ghApi", Vars.ghApi, str -> {
+            Vars.ghApi = str;
+            Core.settings.put("ghApi", str);
+        });
+        game.textPref("serverJsonURL", Vars.serverJsonURL, str -> {
+            Vars.serverJsonURL = str;
+            Core.settings.put("serverJsonURL", str);
+        });
+        game.textPref("serverJsonBeURL", Vars.serverJsonBeURL, str -> {
+            Vars.serverJsonBeURL = str;
+            Core.settings.put("serverJsonBeURL", str);
         });
         int[] lastUiScale = { settings.getInt("uiscale", 100) };
 
