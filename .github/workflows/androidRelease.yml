@@ -1,5 +1,9 @@
 name: ReleaseAndroid
 
+on:
+  push:
+    tags:
+      - "v*" 
 jobs:
   build:
 
