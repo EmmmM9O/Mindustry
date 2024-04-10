@@ -23,8 +23,6 @@ jobs:
       run: ./gradlew android:assembleDebug
     - name: Upload Android artifacts
       uses: svenstaro/upload-release-action@v2
-    - name: Create Release and Upload Release Asset
-      uses: softprops/action-gh-release@v1
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
         tag: ${{ github.ref }}
