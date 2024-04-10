@@ -24,12 +24,14 @@ jobs:
     - name: Upload Android artifacts
       uses: svenstaro/upload-release-action@v2
       with:
+        overwrite: true
         repo_token: ${{ secrets.GITHUB_TOKEN }}
         tag: ${{ github.ref }}
         file: android/build/outputs/apk/debug/android-debug.apk
     - name: Upload desktop artifacts
       uses: svenstaro/upload-release-action@v2
       with:
+        overwrite: true
         repo_token: ${{ secrets.GITHUB_TOKEN }}
         tag: ${{ github.ref }}
         file: desktop/build/libs/Mindustry.jar
