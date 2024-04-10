@@ -467,21 +467,18 @@ public class Vars implements Loadable {
             settings.put("uiscale", 100);
         }
         Scl.setProduct(Math.max(settings.getInt("uiscale", 100), 25) / 100f);
-        String ghApi_ = settings.getString("ghApi");
-        if (ghApi_.isEmpty()) {
+        if (!settings.has("ghApi")) 
             settings.put("ghApi", ghApi);
-        } else
-            ghApi = ghApi_;
-        String serverJsonURL_ = settings.getString("serverJsonURL");
-        if (serverJsonURL_.isEmpty()) {
+        else
+            ghApi = settings.getString("ghApi");
+        if (!settings.has("serverJsonURL")) 
             settings.put("serverJsonURL", serverJsonURL);
-        } else
-            serverJsonURL = serverJsonURL_;
-        String serverJsonBeURL_ = settings.getString("serverJsonBeURL");
-        if (serverJsonBeURL_.isEmpty()) {
+        else
+            serverJsonURL = settings.getString("serverJsonURL");
+	if (!settings.has("serverJsonBeURL")) 
             settings.put("serverJsonBeURL", serverJsonBeURL);
-        } else
-            serverJsonBeURL = serverJsonBeURL_;
+         else
+            serverJsonBeURL = settings.getString("serverJsonBeURL");
 
         if (!loadLocales)
             return;

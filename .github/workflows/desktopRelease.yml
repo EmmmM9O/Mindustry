@@ -1,4 +1,4 @@
-name: ReleaseAndroid
+name: ReleaseDesktop
 
 on:
   workflow_dispatch:
@@ -20,12 +20,11 @@ jobs:
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
     - name: Build with Gradle
-      run: ./gradlew android:assembleDebug 
-    - name: Upload Android artifacts
+      run: ./gradlew desktop:dist
+    - name: Upload desktop artifacts
       uses: svenstaro/upload-release-action@v2
       with:
         overwrite: true
         repo_token: ${{ secrets.GITHUB_TOKEN }}
         tag: ${{ github.ref }}
-        file: android/build/outputs/apk/debug/android-debug.apk
-
+        file: desktop/build/libs/Mindustry.jar
