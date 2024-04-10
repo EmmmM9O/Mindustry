@@ -27,7 +27,7 @@ jobs:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
         tag: ${{ github.ref }}
         file: android/build/outputs/apk/debug/android-debug.apk
-   - name: Upload desktop artifacts
+    - name: Upload desktop artifacts
       uses: svenstaro/upload-release-action@v2
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
