@@ -1,9 +1,10 @@
 name: ReleaseAndroid
 
 on:
-  push:
-    tags:
-      - "v*" 
+  workflow_dispatch:
+    input:
+      body:
+        description: 'releaseBody'  
 jobs:
   build:
 
@@ -27,7 +28,7 @@ jobs:
       with:
         tag_name: ${{ github.ref }}
         name: Release ${{ github.ref }}
-        body: TODO New Release.
+        body: ${{ github.event.inputs.tag }}
         draft: false
         prerelease: false
         files: |
