@@ -20,10 +20,16 @@ jobs:
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
     - name: Build with Gradle
-      run: ./gradlew android:assembleDebug
+      run: ./gradlew android:assembleDebug desktop:dist
     - name: Upload Android artifacts
       uses: svenstaro/upload-release-action@v2
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
         tag: ${{ github.ref }}
         file: android/build/outputs/apk/debug/android-debug.apk
+   - name: Upload desktop artifacts
+      uses: svenstaro/upload-release-action@v2
+      with:
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        tag: ${{ github.ref }}
+        file: desktop/build/libs/Mindustry.jar
