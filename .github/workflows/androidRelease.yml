@@ -2,9 +2,7 @@ name: ReleaseAndroid
 
 on:
   workflow_dispatch:
-    input:
-      body:
-        description: 'releaseBody'  
+
 jobs:
   build:
 
@@ -23,13 +21,11 @@ jobs:
       run: chmod +x gradlew
     - name: Build with Gradle
       run: ./gradlew android:assembleDebug
+    - name: Upload Android artifacts
+      uses: svenstaro/upload-release-action@v2
     - name: Create Release and Upload Release Asset
       uses: softprops/action-gh-release@v1
       with:
-        tag_name: ${{ github.ref }}
-        name: Release ${{ github.ref }}
-        body: ${{ github.event.inputs.tag }}
-        draft: false
-        prerelease: false
-        files: |
-         android/build/outputs/apk/debug/android-debug.apk
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        tag: ${{ github.ref }}
+        file: android/build/outputs/apk/debug/android-debug.apk
