@@ -71,6 +71,8 @@ public class Vars implements Loadable {
     public static final String appName = "Mindustry";
     /** Github API URL. */
     public static String ghApi = "https://api.github.com";
+    public static String githubURL = "https://github.com";
+    public static String rawGithubURL = "https://github.com";
     /** URL for discord invite. */
     public static final String discordURL = "https://discord.gg/mindustry";
     /** URL the links to the wiki's modding guide. */
@@ -471,6 +473,14 @@ public class Vars implements Loadable {
             settings.put("ghApi", ghApi);
         else
             ghApi = settings.getString("ghApi");
+	if (!settings.has("githubURL")) 
+            settings.put("githubURL", githubURL);
+        else
+            githubURL= settings.getString("githubURL");
+        if (!settings.has("rawGithubURL")) 
+            settings.put("rawGithubURL", rawGithubURL);
+        else
+            rawGithubURL = settings.getString("rawGithubURL");
         if (!settings.has("serverJsonURL")) 
             settings.put("serverJsonURL", serverJsonURL);
         else

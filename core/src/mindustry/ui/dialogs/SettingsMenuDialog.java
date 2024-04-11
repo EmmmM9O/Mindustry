@@ -388,13 +388,23 @@ public class SettingsMenuDialog extends BaseDialog {
             Vars.ghApi = str;
             Core.settings.put("ghApi", str);
         });
+        game.textPref("githubURL", Vars.githubURL, str -> {
+            Vars.githubURL = str;
+            Core.settings.put("githubURL", str);
+        });
+        game.textPref("rawGithubURL", Vars.rawGithubURL, str -> {
+            Vars.rawGithubURL = str;
+            Core.settings.put("rawGithubURL", str);
+        });
         game.textPref("serverJsonURL", Vars.serverJsonURL, str -> {
             Vars.serverJsonURL = str;
             Core.settings.put("serverJsonURL", str);
+	    Vars.ui.join.loadServers();
         });
         game.textPref("serverJsonBeURL", Vars.serverJsonBeURL, str -> {
             Vars.serverJsonBeURL = str;
             Core.settings.put("serverJsonBeURL", str);
+	    Vars.ui.join.loadServers();
         });
         int[] lastUiScale = { settings.getInt("uiscale", 100) };
 
