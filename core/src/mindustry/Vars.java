@@ -149,7 +149,7 @@ public class Vars implements Loadable {
             Color.valueOf("4b5ef1"),
             Color.valueOf("2cabfe"),
     };
-    public static Color extraColor = null;
+    public static Color[] extraPlayerColors = {};
     /** maximum TCP packet size */
     public static final int maxTcpSize = 900;
     /** default server port */
@@ -469,27 +469,28 @@ public class Vars implements Loadable {
             settings.put("uiscale", 100);
         }
         Scl.setProduct(Math.max(settings.getInt("uiscale", 100), 25) / 100f);
-        if (!settings.has("ghApi")) 
+        if (!settings.has("ghApi"))
             settings.put("ghApi", ghApi);
         else
             ghApi = settings.getString("ghApi");
-	if (!settings.has("githubURL")) 
+        if (!settings.has("githubURL"))
             settings.put("githubURL", githubURL);
         else
-            githubURL= settings.getString("githubURL");
-        if (!settings.has("rawGithubURL")) 
+            githubURL = settings.getString("githubURL");
+        if (!settings.has("rawGithubURL"))
             settings.put("rawGithubURL", rawGithubURL);
         else
             rawGithubURL = settings.getString("rawGithubURL");
-        if (!settings.has("serverJsonURL")) 
+        if (!settings.has("serverJsonURL"))
             settings.put("serverJsonURL", serverJsonURL);
         else
             serverJsonURL = settings.getString("serverJsonURL");
-	if (!settings.has("serverJsonBeURL")) 
+        if (!settings.has("serverJsonBeURL"))
             settings.put("serverJsonBeURL", serverJsonBeURL);
-         else
+        else
             serverJsonBeURL = settings.getString("serverJsonBeURL");
-
+        if(!settings.has("extraPlayerColors"))
+        ;
         if (!loadLocales)
             return;
 
