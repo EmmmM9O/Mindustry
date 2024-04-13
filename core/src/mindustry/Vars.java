@@ -72,7 +72,7 @@ public class Vars implements Loadable {
     /** Github API URL. */
     public static String ghApi = "https://api.github.com";
     public static String githubURL = "https://github.com";
-    public static String rawGithubURL = "https://github.com";
+    public static String rawGithubURL = "https://raw.github.com";
     /** URL for discord invite. */
     public static final String discordURL = "https://discord.gg/mindustry";
     /** URL the links to the wiki's modding guide. */

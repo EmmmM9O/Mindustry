@@ -23,7 +23,7 @@ jobs:
       run: |
         sed -i 's/applicationId "io.anuke.mindustry"/applicationId "github.emmmm9o.mindustry"/g' android/build.gradle
         sed -i 's/"io.anuke.mindustry"/"github.emmmm9o.mindustry"/g' android/AndroidManifest.xml
-        sed -i 's/Mindustry/Mindustry BE/g' android/res/values/strings.xml
+        sed -i 's/Mindustry/Mindustry Nova/g' android/res/values/strings.xml
         ./gradlew pack
         ./gradlew android:assembleDebug 
     - name: Upload Android artifacts

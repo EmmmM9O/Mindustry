@@ -685,7 +685,7 @@ public class ModsDialog extends BaseDialog{
 
             if(asset != null){
                 //grab actual file
-                var url = asset.getString("browser_download_url");
+                var url = asset.getString("browser_download_url").replace("https://github.com",githubURL);
 
                 Http.get(url, result -> handleMod(repo, result), this::importFail);
             }else{
