@@ -273,6 +273,21 @@ public class Vars implements Loadable{
         init();
     }
 
+    public static void initDirectories() {
+        if (steam || (Version.modifier != null && Version.modifier.contains("steam"))) {
+            settings.setDataDirectory(Core.files.local("saves/"));
+        }
+        dataDirectory = settings.getDataDirectory();
+        screenshotDirectory = dataDirectory.child("screenshots/");
+        customMapDirectory = dataDirectory.child("maps/");
+        mapPreviewDirectory = dataDirectory.child("previews/");
+        saveDirectory = dataDirectory.child("saves/");
+        tmpDirectory = dataDirectory.child("tmp/");
+        modDirectory = dataDirectory.child("mods/");
+        schematicDirectory = dataDirectory.child("schematics/");
+        bebuildDirectory = dataDirectory.child("be_builds/");
+    }
+
     public static void init(){
         Groups.init();
 
@@ -300,15 +315,6 @@ public class Vars implements Loadable{
             Log.info("[Mindustry] Version: @", Version.buildString());
         }
 
-        dataDirectory = settings.getDataDirectory();
-        screenshotDirectory = dataDirectory.child("screenshots/");
-        customMapDirectory = dataDirectory.child("maps/");
-        mapPreviewDirectory = dataDirectory.child("previews/");
-        saveDirectory = dataDirectory.child("saves/");
-        tmpDirectory = dataDirectory.child("tmp/");
-        modDirectory = dataDirectory.child("mods/");
-        schematicDirectory = dataDirectory.child("schematics/");
-        bebuildDirectory = dataDirectory.child("be_builds/");
         emptyMap = new Map(new StringMap());
 
         if(tree == null) tree = new FileTree();
@@ -349,7 +355,7 @@ public class Vars implements Loadable{
             emptyTile = new Tile(Short.MAX_VALUE - 20, Short.MAX_VALUE - 20);
         });
 
-        mods.load();
+        //mods.load();
         maps.load();
     }
 

@@ -20,6 +20,7 @@ import arc.scene.ui.Tooltip.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
+import mindustry.*;
 import mindustry.editor.*;
 import mindustry.game.EventType.*;
 import mindustry.gen.*;
@@ -37,8 +38,8 @@ public class UI implements ApplicationListener, Loadable{
 
     public static PixmapPacker packer;
 
-    public MenuFragment menufrag;
-    public HudFragment hudfrag;
+    public MenuFragmentI menufrag;
+    public HudFragmentI hudfrag;
     public ChatFragment chatfrag;
     public ConsoleFragment consolefrag;
     public MinimapFragment minimapfrag;
@@ -176,8 +177,11 @@ public class UI implements ApplicationListener, Loadable{
         menuGroup = new WidgetGroup();
         hudGroup = new WidgetGroup();
 
-        menufrag = new MenuFragment();
-        hudfrag = new HudFragment();
+        UI that = this;
+        Vars.mods.eachModifier(m -> m.modifyUI(that));
+
+        if(hudfrag == null) menufrag = new MenuFragment();
+        if(hudfrag == null) hudfrag = new HudFragment();
         hints = new HintsFragment();
         chatfrag = new ChatFragment();
         minimapfrag = new MinimapFragment();

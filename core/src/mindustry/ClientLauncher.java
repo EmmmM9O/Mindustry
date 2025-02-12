@@ -43,7 +43,6 @@ public abstract class ClientLauncher extends ApplicationCore implements Platform
         checkLaunch();
         loadLogger();
 
-        loader = new LoadRenderer();
         Events.fire(new ClientCreateEvent());
 
         loadFileLogger();
@@ -77,9 +76,16 @@ public abstract class ClientLauncher extends ApplicationCore implements Platform
         UI.loadColors();
         batch = new SpriteBatch();
         assets = new AssetManager();
-        assets.setLoader(Texture.class, "." + mapExtension, new MapPreviewLoader());
 
         tree = new FileTree();
+        mods = new Mods();
+        schematics = new Schematics();
+        Vars.initDirectories();
+        mods.load();
+        if(loader == null){
+            loader = new LoadRenderer();
+        }
+        assets.setLoader(Texture.class, "." + mapExtension, new MapPreviewLoader());
         assets.setLoader(Sound.class, new SoundLoader(tree){
             @Override
             public void loadAsync(AssetManager manager, String fileName, Fi file, SoundParameter parameter){
@@ -141,10 +147,8 @@ public abstract class ClientLauncher extends ApplicationCore implements Platform
 
         assets.load("sprites/error.png", Texture.class);
         atlas = TextureAtlas.blankAtlas();
-        Vars.net = new Net(platform.getNet());
         MapPreviewLoader.setupLoaders();
-        mods = new Mods();
-        schematics = new Schematics();
+        Vars.net = new Net(platform.getNet());
 
         Fonts.loadSystemCursors();
 
@@ -223,7 +227,9 @@ public abstract class ClientLauncher extends ApplicationCore implements Platform
                 loader.draw();
             }
             if(assets.update(1000 / loadingFPS)){
-                loader.dispose();
+                if(loader != null){
+                    loader.dispose();
+                }
                 loader = null;
                 Log.info("Total time to load: @ms", Time.timeSinceMillis(beginTime));
                 for(ApplicationListener listener : modules){
