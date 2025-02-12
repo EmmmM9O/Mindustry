@@ -292,6 +292,7 @@ public class Vars implements Loadable{
         schematicDirectory = dataDirectory.child("schematics/");
         bebuildDirectory = dataDirectory.child("be_builds/");
         loadSettings();
+
     }
 
     public static void init(){
