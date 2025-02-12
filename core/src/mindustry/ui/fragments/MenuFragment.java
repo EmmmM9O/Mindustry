@@ -23,13 +23,16 @@ import mindustry.ui.*;
 import static mindustry.Vars.*;
 import static mindustry.gen.Tex.*;
 
-public class MenuFragment{
+
+public class MenuFragment extends MenuFragmentI{
     private Table container, submenu;
     private Button currentMenu;
     private MenuRenderer renderer;
     private Seq<MenuButton> customButtons = new Seq<>();
     public Seq<MenuButton> desktopButtons = null;
 
+
+    @Override
     public void build(Group parent){
         renderer = new MenuRenderer();
 
