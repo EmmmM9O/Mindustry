@@ -2094,7 +2094,7 @@ public class Blocks{
             requirements(Category.distribution, with(Items.silicon, 80, Items.surgeAlloy, 50, Items.oxide, 20));
 
             size = 3;
-            buildTime = 60f * 8f;
+            unitBuildTime = 60f * 8f;
 
             consumePower(8f / 60f);
 
@@ -2406,12 +2406,13 @@ public class Blocks{
             envEnabled = Env.any;
             generateEffect = Fx.generatespark;
 
+            itemDurationMultipliers.put(Items.phaseFabric, 210f / 14f);
             drawer = new DrawMulti(new DrawDefault(), new DrawWarmupRegion());
             consume(new ConsumeItemRadioactive());
         }};
 
         solarPanel = new SolarGenerator("solar-panel"){{
-            requirements(Category.power, with(Items.lead, 10, Items.silicon, 10));
+            requirements(Category.power, with(Items.lead, 10, Items.silicon, 8));
             powerProduction = 0.12f;
         }};
 
@@ -2453,13 +2454,13 @@ public class Blocks{
         //erekir
 
         beamNode = new BeamNode("beam-node"){{
-            requirements(Category.power, with(Items.beryllium, 10));
+            requirements(Category.power, with(Items.beryllium, 8));
             consumesPower = outputsPower = true;
             health = 90;
             range = 10;
             fogRadius = 1;
             researchCost = with(Items.beryllium, 5);
-            buildCostMultiplier = 2f;
+            buildCostMultiplier = 2.5f;
 
             consumePowerBuffered(1000f);
         }};
@@ -2881,17 +2882,19 @@ public class Blocks{
             blockedItem = Items.thorium;
             researchCostMultiplier = 0.5f;
 
-            drillMultipliers.put(Items.beryllium, 2.5f);
+            drillMultipliers.put(Items.beryllium, 1.95f);
+            liquidBoostIntensity = 1.75f;
 
             fogRadius = 4;
 
             consumePower(160f / 60f);
             consumeLiquid(Liquids.water, 10f/60f);
+            consumeLiquid(Liquids.ozone, 3f / 60f).boost();
         }};
 
         eruptionDrill = new BurstDrill("eruption-drill"){{
-            requirements(Category.production, with(Items.silicon, 200, Items.oxide, 20, Items.tungsten, 200, Items.thorium, 120));
-            drillTime = 60f * 6f;
+            requirements(Category.production, with(Items.silicon, 300, Items.oxide, 20, Items.tungsten, 250, Items.thorium, 150));
+            drillTime = 281.25f;
             size = 5;
             hasPower = true;
             tier = 7;
@@ -2903,18 +2906,20 @@ public class Blocks{
                 Fx.mineImpactWave.wrap(Liquids.hydrogen.color, 45f)
             );
             shake = 4f;
-            itemCapacity = 50;
+            itemCapacity = 60;
             arrowOffset = 2f;
             arrowSpacing = 5f;
             arrows = 2;
             glowColor.a = 0.6f;
             fogRadius = 5;
 
-            drillMultipliers.put(Items.beryllium, 2.5f);
+            drillMultipliers.put(Items.beryllium, 1.35f);
+            liquidBoostIntensity = 2f;
 
             //TODO different requirements
             consumePower(6f);
-            consumeLiquids(LiquidStack.with(Liquids.hydrogen, 4f / 60f));
+            consumeLiquid(Liquids.hydrogen, 4f / 60f);
+            consumeLiquid(Liquids.cyanogen, 3f / 60f).boost();
         }};
 
         //endregion
@@ -4560,7 +4565,7 @@ public class Blocks{
             }},
 
             Items.surgeAlloy, new BasicBulletType(){{
-                reloadMultiplier = 0.5f;
+                reloadMultiplier = 0.75f;
                 damage = 65;
                 rangeChange = 8f * 3f;
                 lightning = 3;

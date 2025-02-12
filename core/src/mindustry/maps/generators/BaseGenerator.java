@@ -35,7 +35,7 @@ public class BaseGenerator{
             && !b.insulated && b.buildVisibility == BuildVisibility.shown
             && !(b instanceof Door)
             && b.isOnPlanet(state.getPlanet()));
-        wallsSmall.sort(b -> b.buildCost);
+        wallsSmall.sort(b -> b.buildTime);
         return wallsSmall.getFrac(difficulty * 0.91f);
     }
 
@@ -117,7 +117,7 @@ public class BaseGenerator{
                         }
 
                         Tile o = tiles.get(tile.x + p.x, tile.y + p.y);
-                        if(o != null && o.team() == team && !(o.block() instanceof Wall)){
+                        if(o != null && o.team() == team && !(o.block() instanceof Wall) && !(o.block() instanceof ShockMine)){
                             any = true;
                             break;
                         }
