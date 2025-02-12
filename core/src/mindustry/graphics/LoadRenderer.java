@@ -21,7 +21,8 @@ import mindustry.graphics.g3d.*;
 
 import static arc.Core.*;
 
-public class LoadRenderer implements Disposable{
+
+public class LoadRenderer implements LoadRendererI{
     private static final Color color = new Color(Pal.accent).lerp(Color.black, 0.5f);
     private static final Color colorRed = Pal.breakInvalid.cpy().lerp(Color.black, 0.3f);
     private static final String red = "[#" + colorRed + "]";
@@ -79,6 +80,8 @@ public class LoadRenderer implements Disposable{
         bloom.dispose();
     }
 
+
+    @Override
     public void draw(){
         if(!preview){
             if(lastFrameTime == 0){

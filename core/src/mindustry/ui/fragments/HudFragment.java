@@ -35,7 +35,8 @@ import mindustry.world.meta.*;
 import static mindustry.Vars.*;
 import static mindustry.gen.Tex.*;
 
-public class HudFragment{
+
+public class HudFragment extends HudFragmentI{
     private static final float dsize = 65f, pauseHeight = 36f;
 
     public PlacementFragment blockfrag = new PlacementFragment();
@@ -125,6 +126,10 @@ public class HudFragment{
         }
     }
 
+<<<<<<< HEAD
+=======
+    @Override
+>>>>>>> 1b55df5c9 (Merge)
     public void build(Group parent){
 
         //warn about guardian/boss waves
@@ -542,11 +547,19 @@ public class HudFragment{
         }
     }
 
+<<<<<<< HEAD
+=======
+    @Override
+>>>>>>> 1b55df5c9 (Merge)
     public void setHudText(String text){
         showHudText = true;
         hudText = text;
     }
 
+<<<<<<< HEAD
+=======
+    @Override
+>>>>>>> 1b55df5c9 (Merge)
     public void toggleHudText(boolean shown){
         showHudText = shown;
     }
@@ -563,18 +576,34 @@ public class HudFragment{
         }
     }
 
+<<<<<<< HEAD
+=======
+    @Override
+>>>>>>> 1b55df5c9 (Merge)
     public boolean hasToast(){
         return Time.timeSinceMillis(lastToast) < 3.5f * 1000f;
     }
 
+<<<<<<< HEAD
+=======
+    @Override
+>>>>>>> 1b55df5c9 (Merge)
     public void showToast(String text){
         showToast(Icon.ok, text);
     }
 
+<<<<<<< HEAD
+=======
+    @Override
+>>>>>>> 1b55df5c9 (Merge)
     public void showToast(Drawable icon, String text){
         showToast(icon, -1, text);
     }
 
+<<<<<<< HEAD
+=======
+    @Override
+>>>>>>> 1b55df5c9 (Merge)
     public void showToast(Drawable icon, float size, String text){
         if(state.isMenu()) return;
 
@@ -603,6 +632,10 @@ public class HudFragment{
         });
     }
 
+<<<<<<< HEAD
+=======
+    @Override
+>>>>>>> 1b55df5c9 (Merge)
     /** Show unlock notification for a new recipe. */
     public void showUnlock(UnlockableContent content){
         //some content may not have icons... yet

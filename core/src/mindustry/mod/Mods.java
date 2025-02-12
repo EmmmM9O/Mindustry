@@ -989,6 +989,11 @@ public class Mods implements Loadable{
         orderedMods().each(p -> p.main != null, p -> contextRun(p, () -> cons.get(p.main)));
     }
 
+
+    public void eachModifier(Cons<ModModifier> cons) {
+        orderedMods().each(p -> p.main != null && ModModifier.class.isAssignableFrom(p.main.getClass()),
+                p -> modifierRun(p, () -> cons.get((ModModifier) p.main)));
+    }
     /** Iterates through each enabled mod. */
     public void eachEnabled(Cons<LoadedMod> cons){
         orderedMods().each(LoadedMod::enabled, cons);
@@ -999,6 +1004,14 @@ public class Mods implements Loadable{
             run.run();
         }catch(Throwable t){
             throw new RuntimeException("Error loading mod " + mod.meta.name, t);
+        }
+    }
+
+    public void modifierRun(LoadedMod mod, Runnable run){
+        try{
+            run.run();
+        }catch(Throwable t){
+            throw new RuntimeException("Error loading mod modifier " + mod.meta.name, t);
         }
     }
 
