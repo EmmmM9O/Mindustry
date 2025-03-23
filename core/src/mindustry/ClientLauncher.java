@@ -30,8 +30,8 @@ public abstract class ClientLauncher extends ApplicationCore implements Platform
     private long nextFrame;
     private long beginTime;
     private long lastTargetFps = -1;
-    private boolean finished = false;
-    private LoadRenderer loader;
+    public boolean finished = false;
+    public LoadRendererI loader;
 
     @Override
     public void setup(){

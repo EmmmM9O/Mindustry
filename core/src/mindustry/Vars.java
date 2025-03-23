@@ -271,7 +271,6 @@ public class Vars implements Loadable{
 
     @Override
     public void loadAsync(){
-        loadSettings();
         init();
     }
 
@@ -289,6 +288,7 @@ public class Vars implements Loadable{
         modDirectory = dataDirectory.child("mods/");
         schematicDirectory = dataDirectory.child("schematics/");
         bebuildDirectory = dataDirectory.child("be_builds/");
+        loadSettings();
     }
 
     public static void init(){
