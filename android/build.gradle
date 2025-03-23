@@ -16,8 +16,9 @@ apply plugin: "com.android.application"
 configurations{ natives }
 
 repositories{
+    mavenLocal()
     mavenCentral()
-    maven{ url "https://maven.google.com" }
+    maven{ url "https://dl.google.com/dl/android/maven2/" }
 }
 
 task deploy(type: Copy){
@@ -29,7 +30,7 @@ task deploy(type: Copy){
 }
 
 android{
-    namespace = "io.anuke.mindustry"
+    namespace = "com.github.emmmm9o.mindustry"
     buildToolsVersion = '34.0.0'
     compileSdk = 34
     sourceSets{
@@ -55,7 +56,7 @@ android{
         Integer vcode = props['androidBuildCode']?.toInteger() ?: 1
         def versionNameResult = "$versionNumber-$versionType-${getBuildVersion().replace(" ", "-")}"
 
-        applicationId "io.anuke.mindustry"
+        applicationId "com.github.emmmm9o.mindustry"
         minSdkVersion 14
         targetSdkVersion 34
         

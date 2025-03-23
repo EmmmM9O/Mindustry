@@ -39,10 +39,11 @@ import static mindustry.gen.Tex.*;
 public class HudFragment extends HudFragmentI{
     private static final float dsize = 65f, pauseHeight = 36f;
 
-    public PlacementFragment blockfrag = new PlacementFragment();
     public CoreItemsDisplay coreItems = new CoreItemsDisplay();
     public boolean shown = true;
-
+    public HudFragment(){
+        blockfrag = new PlacementFragment();
+    }
     private ImageButton flip;
 
     private String hudText = "";
