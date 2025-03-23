@@ -182,7 +182,7 @@ public class UI implements ApplicationListener, Loadable{
         UI that = this;
         Vars.mods.eachModifier(m -> m.modifyUI(that));
 
-        if(hudfrag == null) menufrag = new MenuFragment();
+        if(menufrag == null) menufrag = new MenuFragment();
         if(hudfrag == null) hudfrag = new HudFragment();
         hints = new HintsFragment();
         chatfrag = new ChatFragment();

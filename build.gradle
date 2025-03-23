@@ -195,7 +195,7 @@ allprojects{
         targetCompatibility = 8
         sourceCompatibility = JavaVersion.VERSION_17
         options.encoding = "UTF-8"
-        options.compilerArgs += ["-Xlint:deprecation"]
+        options.compilerArgs += ["-Xlint:deprecation","-parameters"]
         dependsOn clearCache
 
         options.forkOptions.jvmArgs += [
