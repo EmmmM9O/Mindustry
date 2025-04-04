@@ -1307,7 +1307,6 @@ public class Mods implements Loadable{
             return blacklistedMods.contains(name);
         }
 
-        /** @return whether this mod is outdated, i.e. not compatible with v8. */
         public boolean isOutdated(){
             return getMinMajor() < (isJava() ? minJavaModGameVersion : minModGameVersion);
         }

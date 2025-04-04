@@ -472,7 +472,7 @@ public class World{
                 }
 
                 //if the map area contracts, disable the block
-                build.checkAllowUpdate();
+                build.checkAllowUpdate();  
             }
         }
     }

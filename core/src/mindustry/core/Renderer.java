@@ -241,6 +241,7 @@ public class Renderer implements ApplicationListener{
             }
         }
 
+
         PerfCounter.render.end();
     }
 
