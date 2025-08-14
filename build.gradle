@@ -9,7 +9,7 @@ buildscript{
         arcModule = { String name ->
             //skip to last submodule
             name = name.substring(name.lastIndexOf(':') + 1)
-            return "com.github.Anuken${localArc ? "" : ".Arc"}:$name:$arcHash"
+            return "com.github.emmmm9o${localArc ? "" : ".Arc"}:$name:$arcHash"
         }
     }
 
@@ -36,7 +36,7 @@ allprojects{
     apply plugin: 'maven-publish'
 
     version = project.hasProperty("packageVersion") ? project.getProperty("packageVersion") : 'release'
-    group = 'com.github.Anuken'
+    group = 'com.github.emmmm9o'
 
     ext{
         versionNumber = '8'
@@ -346,7 +346,7 @@ project(":core"){
 
     afterEvaluate{
         task mergedJavadoc(type: Javadoc){
-            def blacklist = [project(":ios"), project(":desktop"), project(":server"), project(":annotations")]
+            def blacklist = [/*project(":ios"),*/ project(":desktop"), project(":server"), project(":annotations")]
             if(findProject(":android") != null){
                 blacklist += project(":android")
             }
