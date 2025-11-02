@@ -107,7 +107,7 @@ public class EditorRenderer implements Disposable{
         //scissors are always enabled because this is drawn clipped in UI, make sure they don't interfere with drawing shadow events
         Gl.disable(Gl.scissorTest);
 
-        if(doUpdate) renderer.blocks.processShadows(!editor.showBuildings, !editor.showTerrain);
+        //if(doUpdate) renderer.blocks.processShadows(!editor.showBuildings, !editor.showTerrain);
 
         Gl.enable(Gl.scissorTest);
 

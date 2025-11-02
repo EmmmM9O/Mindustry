@@ -30,7 +30,8 @@ import static mindustry.Vars.*;
 public class World{
     public final Context context = new Context();
 
-    public Tiles tiles = new Tiles(0, 0);
+    public Tiles tiles = new WorldTiles(0, 0);
+    public TilesQuadMap tilesTree = new TilesQuadMap(new Rect(0, 0, 1, 1));
     /** The number of times tiles have changed in this session. Used for blocks that need to poll world state, but not frequently. */
     public int tileChanges = -1;
 
@@ -50,6 +51,43 @@ public class World{
                 build.checkAllowUpdate();
             }
         });
+    }
+
+    public Seq<Tiles> allTiles = Seq.with();
+    public IntQueue emptyQueue = new IntQueue();
+
+    public void add(Tiles tiles){
+        if(emptyQueue.isEmpty()){
+            tiles.id = allTiles.size;
+            allTiles.add(tiles);
+        }else{
+            tiles.id = emptyQueue.removeFirst();
+            allTiles.set(tiles.id, tiles);
+        }
+        tilesTree.insert(tiles);
+    }
+
+    public void remove(Tiles tiles){
+        allTiles.set(tiles.id, null);
+        emptyQueue.addLast(tiles.id);
+        tiles.id = -1;
+        tilesTree.remove(tiles);
+    }
+
+    public void reset(){
+        tiles = new WorldTiles(0, 0);
+        onReset(0, 0);
+    }
+
+    public void onReset(int width, int height){
+        allTiles.clear();
+        tiles.id = 0;
+        allTiles.add(tiles);
+        emptyQueue.clear();
+        if(width != 0 && height != 0){
+            tilesTree = new TilesQuadMap(tiles.oriRect(new Rect()));
+            tilesTree.insert(tiles);
+        }
     }
 
     /** Adds a custom handler function for loading a custom map - usually a generated one. */
@@ -195,7 +233,8 @@ public class World{
         clearBuildings();
 
         if(tiles.width != width || tiles.height != height){
-            tiles = new Tiles(width, height);
+            tiles = new WorldTiles(width, height);
+            onReset(width, height);
         }
 
         return tiles;
@@ -659,6 +698,17 @@ public class World{
                     filter.apply(tiles, input);
                 }
             }
+        }
+    }
+
+    public static class TilesQuadMap extends QuadTree<Tiles>{
+        public TilesQuadMap(Rect bounds){
+            super(bounds);
+        }
+
+        @Override
+        protected QuadTree<Tiles> newChild(Rect rect){
+            return new TilesQuadMap(rect);
         }
     }
 }

@@ -43,12 +43,24 @@ public class Tile implements Position, QuadTreeObject, Displayable{
     protected Floor overlay;
     protected boolean changing = false;
 
+    public int id;
+    public Tiles tiles;
+
+    public Tile(int x, int y, int id, Tiles tiles){
+        this(x, y);
+        this.id = id;
+        this.tiles = tiles;
+    }
+
     public Tile(int x, int y){
         this.x = (short)x;
         this.y = (short)y;
         block = floor = overlay = (Floor)Blocks.air;
     }
-
+    public Tile(int x, int y, Block floor, Block overlay, Block wall, Tiles tiles){
+        this(x,y, floor, overlay, wall);
+        this.tiles = tiles;
+    }
     public Tile(int x, int y, Block floor, Block overlay, Block wall){
         this.x = (short)x;
         this.y = (short)y;
@@ -59,6 +71,10 @@ public class Tile implements Position, QuadTreeObject, Displayable{
         //update entity and create it if needed
         changeBuild(Team.derelict, wall::newBuilding, 0);
         changed();
+    }
+
+    public Tile(int x, int y, int floor, int overlay, int wall, Tiles tiles){
+        this(x, y, content.block(floor), content.block(overlay), content.block(wall), tiles);
     }
 
     public Tile(int x, int y, int floor, int overlay, int wall){

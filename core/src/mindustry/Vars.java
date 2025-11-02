@@ -283,16 +283,36 @@ public class Vars implements Loadable{
 
     public static Control control;
     public static Logic logic;
-    public static Renderer renderer;
+    public static RendererI renderer;
     public static UI ui;
     public static NetServer netServer;
     public static NetClient netClient;
 
     public static @Nullable Player player;
 
+    public static void preinit(){
+        loadSettings();
+        Version.init();
+        if(!headless){
+            Log.info("[Mindustry] Version: @", Version.buildString());
+        }
+
+        dataDirectory = settings.getDataDirectory();
+        screenshotDirectory = dataDirectory.child("screenshots/");
+        customMapDirectory = dataDirectory.child("maps/");
+        mapPreviewDirectory = dataDirectory.child("previews/");
+        saveDirectory = dataDirectory.child("saves/");
+        tmpDirectory = dataDirectory.child("tmp/");
+        modDirectory = dataDirectory.child("mods/");
+        schematicDirectory = dataDirectory.child("schematics/");
+        bebuildDirectory = dataDirectory.child("be_builds/");
+        serverCacheFile = dataDirectory.child("server_list.json");
+        if(tree == null) tree = new FileTree();
+        mods.preload();
+    }
+
     @Override
     public void loadAsync(){
-        loadSettings();
         init();
     }
 
@@ -316,27 +336,9 @@ public class Vars implements Loadable{
             locales = Seq.with(locales).add(new Locale("router")).toArray(Locale.class);
         }
 
-        Version.init();
         CacheLayer.init();
 
-        if(!headless){
-            Log.info("[Mindustry] Version: @", Version.buildString());
-        }
-
-        dataDirectory = settings.getDataDirectory();
-        screenshotDirectory = dataDirectory.child("screenshots/");
-        customMapDirectory = dataDirectory.child("maps/");
-        mapPreviewDirectory = dataDirectory.child("previews/");
-        saveDirectory = dataDirectory.child("saves/");
-        tmpDirectory = dataDirectory.child("tmp/");
-        modDirectory = dataDirectory.child("mods/");
-        schematicDirectory = dataDirectory.child("schematics/");
-        bebuildDirectory = dataDirectory.child("be_builds/");
-        serverCacheFile = dataDirectory.child("server_list.json");
         emptyMap = new Map(new StringMap());
-
-        if(tree == null) tree = new FileTree();
-        if(mods == null) mods = new Mods();
 
         content = new ContentLoader();
         waves = new Waves();

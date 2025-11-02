@@ -310,7 +310,7 @@ public class MapEditor{
 
         world.clearBuildings();
 
-        Tiles tiles = world.tiles = new Tiles(width, height);
+        Tiles tiles = world.tiles = new WorldTiles(width, height);
 
         for(int x = 0; x < width; x++){
             for(int y = 0; y < height; y++){

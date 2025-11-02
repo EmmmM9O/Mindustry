@@ -112,7 +112,9 @@ public class Mods implements Loadable{
         try{
             file.copyTo(dest);
 
-            var loaded = loadMod(dest, true, true);
+            var loaded = loadMod(dest, true);
+            loadModPreloader(loaded);
+            loadModMain(loaded);
             mods.add(loaded);
             newImports.add(loaded);
             //invalidate ordered mods cache
@@ -487,7 +489,7 @@ public class Mods implements Loadable{
     }
 
     /** Loads all mods from the folder, but does not call any methods on them.*/
-    public void load(){
+    public void preload(){
         var candidates = new Seq<Fi>();
 
         // Add local mods
@@ -523,7 +525,7 @@ public class Mods implements Loadable{
             Log.debug("[Mods] Loading mod @", file);
 
             try{
-                LoadedMod mod = loadMod(file, false, entry.value == ModState.enabled);
+                LoadedMod mod = loadMod(file, false);
                 mod.state = entry.value;
                 mods.add(mod);
                 //invalidate ordered mods cache
@@ -555,7 +557,26 @@ public class Mods implements Loadable{
         }
 
         sortMods();
+        orderedMods().each(p->p.state == ModState.enabled, p -> runMod(p, m -> loadModPreloader(m)));
+    }
+
+    public void load(){
         buildFiles();
+        orderedMods().each(p->p.state == ModState.enabled, p -> runMod(p, m -> loadModMain(m)));
+    } 
+
+    public void runMod(LoadedMod mod, ConsT<LoadedMod, Exception> cons){
+        Fi file = mod.file;
+        try{
+            cons.get(mod);
+        }catch(Throwable e){
+            if(e instanceof ClassNotFoundException && e.getMessage().contains("mindustry.plugin.Plugin")){
+                Log.warn("Plugin '@' is outdated and needs to be ported to v7! Update its main class to inherit from 'mindustry.mod.Plugin'.", file.name());
+            }else{
+                Log.err("Failed to load mod file @. Skipping.", file);
+                Log.err(e);
+            }
+        }
     }
 
     private void sortMods(){
@@ -1012,9 +1033,21 @@ public class Mods implements Loadable{
         orderedMods().each(p -> p.main != null, p -> contextRun(p, () -> cons.get(p.main)));
     }
 
+    public void eachPreloader(Cons<Preloader> cons){
+        orderedMods().each(p -> p.preloader != null, p -> preloadRun(p, () -> cons.get(p.preloader)));
+    }
+
     /** Iterates through each enabled mod. */
     public void eachEnabled(Cons<LoadedMod> cons){
         orderedMods().each(LoadedMod::enabled, cons);
+    }
+
+    public void preloadRun(LoadedMod mod, Runnable run){
+        try{
+            run.run();
+        }catch(Throwable t){
+            throw new RuntimeException("Error preloading mod " + mod.meta.name, t);
+        }
     }
 
     public void contextRun(LoadedMod mod, Runnable run){
@@ -1105,10 +1138,117 @@ public class Mods implements Loadable{
         return files.length == 1 && files[0].isDirectory() ? files[0] : fi;
     }
 
+    private void loadModPreloader(LoadedMod mod) throws Exception{
+        if(mod.preloaderFile == null) return;
+        Time.mark();
+        Preloader mainMod;
+        ModMeta meta = mod.meta;
+        String baseName = meta.name.toLowerCase(Locale.ROOT).replace(" ", "-");
+        //make sure the main class exists before loading it; if it doesn't just don't put it there
+        //if the mod is explicitly marked as java, try loading it anyway
+        if(
+            (mod.preloaderFile.exists() && meta.java) &&
+            !skipModLoading() &&
+            Core.settings.getBool("mod-" + baseName + "-enabled", true) &&
+            Version.isAtLeast(meta.minGameVersion) &&
+            (meta.getMinMajor() >= minJavaModGameVersion || headless) &&
+            !skipModCode
+        ){
+            if(ios){
+                throw new ModLoadException("Java class mods are not supported on iOS.");
+            }
+            ClassLoader loader = platform.loadJar(mod.file, mainLoader);
+            mainLoader.addChild(loader);
+            mod.loader = loader;
+            Class<?> main = Class.forName(mod.preloaderClass, true, loader);
+
+            //detect mods that incorrectly package mindustry in the jar
+            if(main.getSuperclass().getName().equals("mindustry.mod.Preloader") &&
+                main.getSuperclass().getClassLoader() != Preloader.class.getClassLoader()){
+                throw new ModLoadException(
+                    "This preloader has loaded Mindustry dependencies from its own class loader. " +
+                    "You are incorrectly including Mindustry dependencies in the mod JAR - " +
+                    "make sure Mindustry is declared as `compileOnly` in Gradle, and that the JAR is created with `runtimeClasspath`!"
+                );
+            }
+
+            metas.put(main, meta);
+            mainMod = (Preloader)main.getDeclaredConstructor().newInstance();
+        }else{
+                throw new ModLoadException(
+                    "This preloader did not found" 
+                );
+        }
+
+        //skip mod loading if it failed
+        if(skipModLoading()){
+            Core.settings.put("mod-" + baseName + "-enabled", false);
+        }
+
+        if(!headless && Core.settings.getBool("mod-" + baseName + "-enabled", true)){
+            Log.info("preLoaded mod '@' in @ms", meta.name, Time.elapsed());
+        }
+        mod.preloader = mainMod;
+    }
+
+    private void loadModMain(LoadedMod mod) throws Exception{
+        Time.mark();
+        Mod mainMod;
+        ModMeta meta = mod.meta;
+        String baseName = meta.name.toLowerCase(Locale.ROOT).replace(" ", "-");
+        //make sure the main class exists before loading it; if it doesn't just don't put it there
+        //if the mod is explicitly marked as java, try loading it anyway
+        if(
+            (mod.mainFile.exists() || meta.java) &&
+            !skipModLoading() &&
+            Core.settings.getBool("mod-" + baseName + "-enabled", true) &&
+            Version.isAtLeast(meta.minGameVersion) &&
+            (meta.getMinMajor() >= minJavaModGameVersion || headless) &&
+            !skipModCode 
+        ){
+            if(ios){
+                throw new ModLoadException("Java class mods are not supported on iOS.");
+            }
+            ClassLoader loader;
+            if(mod.loader == null){
+                loader = platform.loadJar(mod.file, mainLoader);
+                mainLoader.addChild(loader);
+                mod.loader = loader;
+            }else loader = mod.loader;
+            Class<?> main = Class.forName(mod.mainClass, true, loader);
+
+            //detect mods that incorrectly package mindustry in the jar
+            if((main.getSuperclass().getName().equals("mindustry.mod.Plugin") || main.getSuperclass().getName().equals("mindustry.mod.Mod")) &&
+                main.getSuperclass().getClassLoader() != Mod.class.getClassLoader()){
+                throw new ModLoadException(
+                    "This mod/plugin has loaded Mindustry dependencies from its own class loader. " +
+                    "You are incorrectly including Mindustry dependencies in the mod JAR - " +
+                    "make sure Mindustry is declared as `compileOnly` in Gradle, and that the JAR is created with `runtimeClasspath`!"
+                );
+            }
+
+            metas.put(main, meta);
+            mainMod = (Mod)main.getDeclaredConstructor().newInstance();
+        }else{
+            mainMod = null;
+        }
+
+        //all plugins are hidden implicitly
+        if(mainMod instanceof Plugin){
+            meta.hidden = true;
+        }
+        //skip mod loading if it failed
+        if(skipModLoading()){
+            Core.settings.put("mod-" + baseName + "-enabled", false);
+        }
+        if(!headless && Core.settings.getBool("mod-" + baseName + "-enabled", true)){
+            Log.info("Loaded mod '@' in @ms", meta.name, Time.elapsed());
+        }
+        mod.main = mainMod;
+    }
     /** Loads a mod file+meta, but does not add it to the list.
      * Note that directories can be loaded as mods. */
-    private LoadedMod loadMod(Fi sourceFile, boolean overwrite, boolean initialize) throws Exception{
-        Time.mark();
+    private LoadedMod loadMod(Fi sourceFile, boolean overwrite) throws Exception{
 
         ZipFi rootZip = null;
 
@@ -1124,6 +1264,7 @@ public class Mods implements Loadable{
 
             String camelized = meta.name.replace(" ", "");
             String mainClass = meta.main == null ? camelized.toLowerCase(Locale.ROOT) + "." + camelized + "Mod" : meta.main;
+            String preloaderClass = meta.preloader == null ? camelized.toLowerCase(Locale.ROOT) + "." + camelized + "Preloader" : meta.preloader;
             String baseName = meta.name.toLowerCase(Locale.ROOT).replace(" ", "-");
 
             var other = mods.find(m -> m.name.equals(baseName));
@@ -1162,9 +1303,11 @@ public class Mods implements Loadable{
             ClassLoader loader = null;
             Mod mainMod;
             Fi mainFile = zip;
+            Fi preloaderFile = zip;
 
             if(android){
                 mainFile = mainFile.child("classes.dex");
+                preloaderFile = preloaderFile.child("classes.dex");
             }else{
                 String[] path = (mainClass.replace('.', '/') + ".class").split("/");
                 for(String str : path){
@@ -1172,47 +1315,14 @@ public class Mods implements Loadable{
                         mainFile = mainFile.child(str);
                     }
                 }
-            }
-
-            //make sure the main class exists before loading it; if it doesn't just don't put it there
-            //if the mod is explicitly marked as java, try loading it anyway
-            if(
-                (mainFile.exists() || meta.java) &&
-                !skipModLoading() &&
-                Core.settings.getBool("mod-" + baseName + "-enabled", true) &&
-                Version.isAtLeast(meta.minGameVersion) &&
-                (meta.getMinMajor() >= minJavaModGameVersion || headless) &&
-                !skipModCode &&
-                initialize
-            ){
-                if(ios){
-                    throw new ModLoadException("Java class mods are not supported on iOS.");
+                path = (preloaderClass.replace('.', '/') + ".class").split("/");
+                for(String str : path){
+                    if(!str.isEmpty()){
+                        preloaderFile = preloaderFile.child(str);
+                    }
                 }
-
-                loader = platform.loadJar(sourceFile, mainLoader);
-                mainLoader.addChild(loader);
-                Class<?> main = Class.forName(mainClass, true, loader);
-
-                //detect mods that incorrectly package mindustry in the jar
-                if((main.getSuperclass().getName().equals("mindustry.mod.Plugin") || main.getSuperclass().getName().equals("mindustry.mod.Mod")) &&
-                    main.getSuperclass().getClassLoader() != Mod.class.getClassLoader()){
-                    throw new ModLoadException(
-                        "This mod/plugin has loaded Mindustry dependencies from its own class loader. " +
-                        "You are incorrectly including Mindustry dependencies in the mod JAR - " +
-                        "make sure Mindustry is declared as `compileOnly` in Gradle, and that the JAR is created with `runtimeClasspath`!"
-                    );
-                }
-
-                metas.put(main, meta);
-                mainMod = (Mod)main.getDeclaredConstructor().newInstance();
-            }else{
-                mainMod = null;
             }
-
-            //all plugins are hidden implicitly
-            if(mainMod instanceof Plugin){
-                meta.hidden = true;
-            }
+            if(meta.preloader == null) preloaderFile = null;
 
             //disallow putting a description after the version
             if(meta.version != null){
@@ -1222,16 +1332,11 @@ public class Mods implements Loadable{
                 }
             }
 
-            //skip mod loading if it failed
-            if(skipModLoading()){
-                Core.settings.put("mod-" + baseName + "-enabled", false);
-            }
-
             if(!headless && Core.settings.getBool("mod-" + baseName + "-enabled", true)){
-                Log.info("Loaded mod '@' in @ms", meta.name, Time.elapsed());
+                Log.info("Enable mod '@'", meta.name);
             }
 
-            return new LoadedMod(sourceFile, zip, mainMod, loader, meta);
+            return new LoadedMod(sourceFile, zip, mainFile, preloaderFile, mainClass, preloaderClass, meta);
         }catch(Exception e){
             //delete root zip file so it can be closed on windows
             if(rootZip != null) rootZip.delete();
@@ -1245,8 +1350,12 @@ public class Mods implements Loadable{
         public final Fi file;
         /** The root zip file; points to the contents of this mod. In the case of folders, this is the same as the mod's file. */
         public final Fi root;
+
+        public final Fi mainFile;
+        public final Fi preloaderFile;
         /** The mod's main class; may be null. */
-        public final @Nullable Mod main;
+        public @Nullable Mod main;
+        public @Nullable Preloader preloader;
         /** Internal mod name. Used for textures. */
         public final String name;
         /** This mod's metadata. */
@@ -1267,14 +1376,18 @@ public class Mods implements Loadable{
         public @Nullable Texture iconTexture;
         /** Class loader for JAR mods. Null if the mod isn't loaded or this isn't a jar mod. */
         public @Nullable ClassLoader loader;
+        public String mainClass, preloaderClass;
 
-        public LoadedMod(Fi file, Fi root, Mod main, ClassLoader loader, ModMeta meta){
+        public LoadedMod(Fi file, Fi root, Fi mainFile, Fi preloaderFile, String mainClass, String preloaderClass, ModMeta meta){
             this.root = root;
             this.file = file;
             this.loader = loader;
-            this.main = main;
             this.meta = meta;
             this.name = meta.name.toLowerCase(Locale.ROOT).replace(" ", "-");
+            this.mainFile = mainFile;
+            this.preloaderFile = preloaderFile;
+            this.mainClass = mainClass;
+            this.preloaderClass = preloaderClass;
         }
 
         /** @return whether this is a java class mod. */
@@ -1412,7 +1525,7 @@ public class Mods implements Loadable{
         public String internalName;
         /** Minimum game version that this mod requires, e.g. "140.1" */
         public String minGameVersion = "0";
-        public @Nullable String displayName, author, description, subtitle, version, main, repo;
+        public @Nullable String displayName, author, description, subtitle, version, main, preloader, repo;
         public Seq<String> dependencies = Seq.with();
         public Seq<String> softDependencies = Seq.with();
         /** Hidden mods are only server-side or client-side, and do not support adding new content. */

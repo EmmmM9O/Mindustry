@@ -31,7 +31,7 @@ public abstract class ClientLauncher extends ApplicationCore implements Platform
     private long beginTime;
     private long lastTargetFps = -1;
     private boolean finished = false;
-    private LoadRenderer loader;
+    public LoadRenderer loader;
 
     @Override
     public void setup(){
@@ -151,6 +151,8 @@ public abstract class ClientLauncher extends ApplicationCore implements Platform
         MapPreviewLoader.setupLoaders();
         mods = new Mods();
         schematics = new Schematics();
+        Vars.preinit();
+        mods.eachPreloader(l -> l.modifyApplication(this));
 
         Fonts.loadSystemCursors();
 
@@ -178,7 +180,8 @@ public abstract class ClientLauncher extends ApplicationCore implements Platform
 
         add(logic = new Logic());
         add(control = new Control());
-        add(renderer = new Renderer());
+        if(renderer == null)
+            add(renderer = new Renderer());
         add(ui = new UI());
         add(netServer = new NetServer());
         add(netClient = new NetClient());
@@ -187,6 +190,7 @@ public abstract class ClientLauncher extends ApplicationCore implements Platform
 
         assets.loadRun("contentinit", ContentLoader.class, () -> content.init(), () -> content.load());
         assets.loadRun("baseparts", BaseRegistry.class, () -> {}, () -> bases.load());
+        mods.eachPreloader(Preloader::preload);
     }
 
     @Override

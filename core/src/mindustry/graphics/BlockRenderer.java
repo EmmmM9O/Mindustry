@@ -22,7 +22,7 @@ import mindustry.world.blocks.power.*;
 import static arc.Core.*;
 import static mindustry.Vars.*;
 
-public class BlockRenderer{
+public class BlockRenderer extends BlockRendererI{
     //TODO cracks take up far to much space, so I had to limit it to 7. this means larger blocks won't have cracks - draw tiling mirrored stuff instead?
     public static final int crackRegions = 8, maxCrackSize = 7;
     public static boolean drawQuadtreeDebug = false;
@@ -30,7 +30,6 @@ public class BlockRenderer{
 
     private static final int initialRequests = 32 * 32;
 
-    public final FloorRenderer floor = new FloorRenderer();
     public TextureRegion[][] cracks;
 
     private Seq<Tile> tileview = new Seq<>(false, initialRequests, Tile.class);
@@ -109,6 +108,7 @@ public class BlockRenderer{
         });
     }
 
+    @Override
     public void reload(){
         blockTree = new BlockQuadtree(new Rect(0, 0, world.unitWidth(), world.unitHeight()));
         blockLightTree = new BlockLightQuadtree(new Rect(0, 0, world.unitWidth(), world.unitHeight()));
@@ -154,6 +154,7 @@ public class BlockRenderer{
         updateDarkness();
     }
 
+    @Override
     public void updateShadows(boolean ignoreBuildings, boolean ignoreTerrain){
         shadows.getTexture().setFilter(TextureFilter.linear, TextureFilter.linear);
         shadows.resize(world.width(), world.height());
@@ -174,6 +175,7 @@ public class BlockRenderer{
         shadows.end();
     }
 
+    @Override
     public void updateDarkness(){
         darkEvents.clear();
         dark.getTexture().setFilter(TextureFilter.linear);
@@ -210,6 +212,7 @@ public class BlockRenderer{
         dark.end();
     }
 
+    @Override
     public void invalidateTile(Tile tile){
         int avgx = (int)(camera.position.x / tilesize);
         int avgy = (int)(camera.position.y / tilesize);
@@ -221,14 +224,17 @@ public class BlockRenderer{
         }
     }
 
+    @Override
     public FrameBuffer getShadowBuffer(){
         return shadows;
     }
 
+    @Override
     public void removeFloorIndex(Tile tile){
         if(indexFloor(tile)) floorTree.remove(tile);
     }
 
+    @Override
     public void addFloorIndex(Tile tile){
         if(indexFloor(tile)) floorTree.insert(tile);
     }
@@ -250,6 +256,7 @@ public class BlockRenderer{
         if(indexFloor(tile)) floorTree.insert(tile);
     }
 
+    @Override
     public void recacheWall(Tile tile){
         for(int cx = tile.x - darkRadius; cx <= tile.x + darkRadius; cx++){
             for(int cy = tile.y - darkRadius; cy <= tile.y + darkRadius; cy++){
@@ -323,6 +330,7 @@ public class BlockRenderer{
         }
     }
 
+    @Override
     public void processShadows(){
         processShadows(false, false);
     }
@@ -537,6 +545,7 @@ public class BlockRenderer{
         }
     }
 
+    @Override
     public void updateShadow(Building build){
         if(build.tile == null) return;
         int size = build.block.size, of = build.block.sizeOffset, tx = build.tile.x, ty = build.tile.y;
@@ -548,8 +557,14 @@ public class BlockRenderer{
         }
     }
 
+    @Override
     public void updateShadowTile(Tile tile){
         shadowEvents.add(tile);
+    }
+
+    @Override
+    public TextureRegion[][] getCracks(Building building){
+        return cracks;
     }
 
     static class BlockQuadtree extends QuadTree<Tile>{

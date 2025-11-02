@@ -40,9 +40,10 @@ public class Pixelator implements Disposable{
         h = Mathf.clamp(h, 2, graphics.getHeight());
 
         buffer.resize(w, h);
+    }
 
-        buffer.begin(Color.clear);
-        renderer.draw();
+    public void begin(){
+        Draw.draw(Layer.background,() -> buffer.begin(Color.clear));
     }
 
     public void register(){
