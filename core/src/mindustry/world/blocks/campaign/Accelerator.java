@@ -322,7 +322,7 @@ public class Accelerator extends Block{
             if(!launching) return;
 
             this.launching = true;
-            Fx.coreLaunchConstruct.at(x, y, launchBlock.size);
+            Fx.coreLaunchConstruct.at(absoluteX, absoluteY, effectHeight(), launchBlock.size);
 
             cloudSeed = Mathf.random(1f);
             float margin = 30f;
@@ -342,8 +342,8 @@ public class Accelerator extends Block{
             Core.scene.add(image);
 
             Time.run(chargeDuration, () -> {
-                Fx.coreLaunchConstruct.at(x, y, launchBlock.size);
-                Fx.launchAccelerator.at(x, y);
+                Fx.coreLaunchConstruct.at(absoluteX, absoluteY, effectHeight(), launchBlock.size);
+                Fx.launchAccelerator.at(absoluteX, absoluteY, effectHeight(), 0f);
                 Effect.shake(10f, 14f, this);
 
                 for(int i = 0; i < launchLightning; i++){
@@ -361,7 +361,7 @@ public class Accelerator extends Block{
                             if(Mathf.chance(0.7f - fi  * 0.02f)){
                                 float angle = r * 360f / (float)rays;
                                 float ox = Angles.trnsx(angle, radius), oy = Angles.trnsy(angle, radius);
-                                Tile t = world.tileWorld(x + ox, y + oy);
+                                Tile t = tiles.tileWorld(x + ox, y + oy);
                                 if(t != null){
                                     Fx.coreLandDust.at(t.worldx(), t.worldy(), angle + Mathf.range(30f), Tmp.c1.set(t.floor().mapColor).mul(1.7f + Mathf.range(0.15f)));
                                 }

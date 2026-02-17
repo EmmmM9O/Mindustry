@@ -1,5 +1,6 @@
 package mindustry.entities.comp;
 
+import arc.math.geom.*;
 import arc.graphics.g2d.*;
 import mindustry.annotations.Annotations.*;
 import mindustry.game.*;
@@ -9,6 +10,8 @@ import static mindustry.Vars.*;
 
 @Component
 abstract class BlockUnitComp implements Unitc{
+    @Import
+    float x, y;
     @Import Team team;
 
     @ReadOnly transient Building tile;
@@ -21,6 +24,18 @@ abstract class BlockUnitComp implements Unitc{
         health(tile.health);
         hitSize(tile.block.size * tilesize * 0.7f);
         set(tile);
+    }
+
+    @Replace
+    @Override
+    public void set(Position pos){
+        if(pos instanceof TilesRelativec abs){
+            x = abs.getAbsoluteX();
+            y = abs.getAbsoluteY();
+            return;
+        }
+        x = pos.getX();
+        y = pos.getY();
     }
 
     @Override

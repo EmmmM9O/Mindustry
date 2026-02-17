@@ -1,6 +1,7 @@
 package mindustry.net;
 
 import arc.*;
+import arc.func.*;
 import arc.util.*;
 import arc.util.io.*;
 import mindustry.*;
@@ -13,6 +14,7 @@ import mindustry.logic.*;
 import mindustry.maps.Map;
 import mindustry.net.Administration.*;
 import mindustry.type.*;
+import mindustry.world.*;
 
 import java.io.*;
 import java.nio.*;
@@ -53,9 +55,20 @@ public class NetworkIO{
             SaveIO.getSaveWriter().writeContentHeader(stream);
             SaveIO.getSaveWriter().writeContentPatches(stream);
             SaveIO.getSaveWriter().writeMap(stream);
+            SaveIO.getSaveWriter().writeTiles(stream);
             SaveIO.getSaveWriter().writeTeamBlocks(stream);
             SaveIO.getSaveWriter().writeMarkers(stream);
             SaveIO.getSaveWriter().writeCustomChunks(stream, true);
+        }catch(IOException e){
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static void writeTiles(Tiles tiles, OutputStream os){
+        try(DataOutputStream stream = new DataOutputStream(os)){
+            stream.writeByte(tiles.type);
+            stream.writeInt(tiles.id);
+            tiles.write(stream, SaveIO.getSaveWriter());
         }catch(IOException e){
             throw new RuntimeException(e);
         }
@@ -87,6 +100,7 @@ public class NetworkIO{
             SaveIO.getSaveWriter().readContentHeader(stream);
             SaveIO.getSaveWriter().readContentPatches(stream);
             SaveIO.getSaveWriter().readMap(stream, world.context);
+            SaveIO.getSaveWriter().readTiles(stream);
             SaveIO.getSaveWriter().readTeamBlocks(stream);
             SaveIO.getSaveWriter().readMarkers(stream);
             SaveIO.getSaveWriter().readCustomChunks(stream);
@@ -95,6 +109,27 @@ public class NetworkIO{
         }finally{
             content.setTemporaryMapper(null);
         }
+    }
+
+    public static void loadTiles(InputStream is){
+        try(DataInputStream stream = new DataInputStream(is)){
+            int typeid = stream.readUnsignedByte();
+
+            Prov<Tiles> prov = TilesHandler.tilesType.get(typeid, () -> (Tiles)null);
+            Tiles tiles = prov.get();
+            if(tiles == null){
+                throw new RuntimeException("Unknown tiles typeid " + typeid);
+            }
+
+            int id = stream.readInt();
+
+            tiles.id = id;
+            tiles.read(stream, SaveIO.getSaveWriter());
+            world.setTiles(tiles, id);
+        }catch(IOException e){
+            throw new RuntimeException(e);
+        }
+        world.resetEmpty();
     }
 
     public static ByteBuffer writeServerData(){

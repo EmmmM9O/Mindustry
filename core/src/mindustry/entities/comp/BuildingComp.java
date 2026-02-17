@@ -48,7 +48,7 @@ import static mindustry.Vars.*;
 
 @EntityDef(value = {Buildingc.class}, isFinal = false, genio = false, serialize = false)
 @Component(base = true, genInterface = false)
-abstract class BuildingComp implements Posc, Teamc, Healthc, Buildingc, Timerc, QuadTreeObject, Displayable, Sized, Senseable, Controllable, Settable{
+abstract class BuildingComp implements Posc, Teamc, Healthc, Buildingc, Timerc, QuadTreeObject, Displayable, Sized, Senseable, Controllable, Settable, TilesRelativec{
     //region vars and initialization
     static final float timeToSleep = 60f * 1, recentDamageTime = 60f * 5f;
     static final ObjectSet<Building> tmpTiles = new ObjectSet<>();
@@ -60,6 +60,10 @@ abstract class BuildingComp implements Posc, Teamc, Healthc, Buildingc, Timerc, 
     @Import float x, y, health, maxHealth;
     @Import Team team;
     @Import boolean dead;
+    @Import
+    Tiles tiles;
+    @Import
+    float absoluteX, absoluteY;
 
     transient Tile tile;
     transient Block block;
@@ -117,6 +121,7 @@ abstract class BuildingComp implements Posc, Teamc, Healthc, Buildingc, Timerc, 
         proximity.clear();
         this.rotation = rotation;
         this.tile = tile;
+        this.tiles = tile.tiles;
 
         set(tile.drawx(), tile.drawy());
 
@@ -158,6 +163,18 @@ abstract class BuildingComp implements Posc, Teamc, Healthc, Buildingc, Timerc, 
         }
     }
 
+    public float height(){
+        if(tiles == null) return 0f;
+        if(tiles.craft == null) return 0f;
+        return tiles.craft.height();
+    }
+
+    public float effectHeight(){
+        if(tiles == null) return 6f;
+        if(tiles.craft == null) return 6f;
+        return tiles.craft.effectHeight();
+    }
+
     @Override
     @Replace
     public int tileX(){
@@ -168,6 +185,11 @@ abstract class BuildingComp implements Posc, Teamc, Healthc, Buildingc, Timerc, 
     @Replace
     public int tileY(){
         return tile.y;
+    }
+
+    public float getTilesRotation(){
+        if(tiles.craft == null) return 0f;
+        return tiles.craft.rotation();
     }
 
     //endregion
@@ -244,7 +266,7 @@ abstract class BuildingComp implements Posc, Teamc, Healthc, Buildingc, Timerc, 
             timeScaleDuration = read.f();
         }
         if((moduleBits & (1 << 5)) != 0){
-            lastDisabler = world.build(read.i());
+            lastDisabler = tiles.build(read.i());
         }
 
         //unnecessary consume module read in version 2 and below
@@ -304,6 +326,7 @@ abstract class BuildingComp implements Posc, Teamc, Healthc, Buildingc, Timerc, 
     //region utility methods
 
     public boolean isDiscovered(Team viewer){
+        // TODO
         if(state.rules.limitMapArea && world.getDarkness(tile.x, tile.y) >= 3){
             return false;
         }
@@ -366,7 +389,7 @@ abstract class BuildingComp implements Posc, Teamc, Healthc, Buildingc, Timerc, 
         Tile best = null;
         float mindst = 0f;
         for(var point : Edges.getEdges(block.size)){
-            Tile other = Vars.world.tile(tile.x + point.x, tile.y + point.y);
+            Tile other = tiles.get(tile.x + point.x, tile.y + point.y);
             if(other != null && !solid.get(other) && (best == null || to.dst2(other) < mindst)){
                 best = other;
                 mindst = other.dst2(to);
@@ -498,7 +521,7 @@ abstract class BuildingComp implements Posc, Teamc, Healthc, Buildingc, Timerc, 
 
     public void eachEdge(Cons<Tile> cons){
         for(var edge : block.getEdges()){
-            Tile other = world.tile(tile.x + edge.x, tile.y + edge.y);
+            Tile other = tiles.get(tile.x + edge.x, tile.y + edge.y);
             if(other != null){
                 cons.get(other);
             }
@@ -506,15 +529,15 @@ abstract class BuildingComp implements Posc, Teamc, Healthc, Buildingc, Timerc, 
     }
 
     public Building nearby(int dx, int dy){
-        return world.build(tile.x + dx, tile.y + dy);
+        return tiles.build(tile.x + dx, tile.y + dy);
     }
 
     public Building nearby(int rotation){
         return switch(rotation){
-            case 0 -> world.build(tile.x + 1, tile.y);
-            case 1 -> world.build(tile.x, tile.y + 1);
-            case 2 -> world.build(tile.x - 1, tile.y);
-            case 3 -> world.build(tile.x, tile.y - 1);
+            case 0 -> tiles.build(tile.x + 1, tile.y);
+            case 1 -> tiles.build(tile.x, tile.y + 1);
+            case 2 -> tiles.build(tile.x - 1, tile.y);
+            case 3 -> tiles.build(tile.x, tile.y - 1);
             default -> null;
         };
     }
@@ -946,7 +969,7 @@ abstract class BuildingComp implements Posc, Teamc, Healthc, Buildingc, Timerc, 
             }else if(!next.block.consumesLiquid(liquid) && next.liquids.currentAmount() / next.block.liquidCapacity > 0.1f && fract > 0.1f){
                 //TODO !IMPORTANT! uses current(), which is 1) wrong for multi-liquid blocks and 2) causes unwanted reactions, e.g. hydrogen + slag in pump
                 //TODO these are incorrect effect positions
-                float fx = (x + next.x) / 2f, fy = (y + next.y) / 2f;
+                float fx = (absoluteX + next.x) / 2f, fy = (absoluteY + next.y) / 2f;
 
                 Liquid other = next.liquids.current();
                 if(other.blockReactive && liquid.blockReactive){
@@ -955,12 +978,12 @@ abstract class BuildingComp implements Posc, Teamc, Healthc, Buildingc, Timerc, 
                         damageContinuous(1);
                         next.damageContinuous(1);
                         if(Mathf.chanceDelta(0.1)){
-                            Fx.fire.at(fx, fy);
+                            Fx.fire.at(fx, fy, effectHeight(), 0f);
                         }
                     }else if((liquid.temperature > 0.7f && other.temperature < 0.55f) || (other.temperature > 0.7f && liquid.temperature < 0.55f)){
                         liquids.remove(liquid, Math.min(liquids.get(liquid), 0.7f * Time.delta));
                         if(Mathf.chanceDelta(0.2f)){
-                            Fx.steam.at(fx, fy);
+                            Fx.steam.at(fx, fy, effectHeight(), 0f);
                         }
                     }
                 }
@@ -1160,7 +1183,7 @@ abstract class BuildingComp implements Posc, Teamc, Healthc, Buildingc, Timerc, 
 
         power.graph.remove(self());
         for(int i = 0; i < power.links.size; i++){
-            Tile other = world.tile(power.links.get(i));
+            Tile other = tiles.getp(power.links.get(i));
             if(other != null && other.build != null && other.build.power != null){
                 other.build.power.links.removeValue(pos());
             }
@@ -1186,7 +1209,7 @@ abstract class BuildingComp implements Posc, Teamc, Healthc, Buildingc, Timerc, 
         }
 
         for(int i = 0; i < power.links.size; i++){
-            Tile link = world.tile(power.links.get(i));
+            Tile link = tiles.getp(power.links.get(i));
             if(link != null && link.build != null && link.build.power != null && link.build.team == team) out.add(link.build);
         }
         return out;
@@ -1308,7 +1331,7 @@ abstract class BuildingComp implements Posc, Teamc, Healthc, Buildingc, Timerc, 
     public boolean checkSuppression(){
         if(isHealSuppressed()){
             if(Mathf.chanceDelta(0.03)){
-                Fx.regenSuppressParticle.at(x + Mathf.range(block.size * tilesize/2f - 1f), y + Mathf.range(block.size * tilesize/2f - 1f), suppressColor);
+                Fx.regenSuppressParticle.at(absoluteX + Mathf.range(block.size * tilesize / 2f - 1f), absoluteY + Mathf.range(block.size * tilesize / 2f - 1f), effectHeight(), 0, suppressColor);
             }
 
             return true;
@@ -1433,7 +1456,7 @@ abstract class BuildingComp implements Posc, Teamc, Healthc, Buildingc, Timerc, 
 
         for(int i = 0; i < Mathf.clamp(amount / 5, 0, 30); i++){
             Time.run(i / 2f, () -> {
-                Tile other = world.tileWorld(x + Mathf.range(block.size * tilesize / 2), y + Mathf.range(block.size * tilesize / 2));
+                Tile other = tiles.tileWorld(x + Mathf.range(block.size * tilesize / 2), y + Mathf.range(block.size * tilesize / 2));
                 if(other != null){
                     Puddles.deposit(other, liquid, splash);
                 }
@@ -1484,7 +1507,7 @@ abstract class BuildingComp implements Posc, Teamc, Healthc, Buildingc, Timerc, 
         Damage.dynamicExplosion(x, y, flammability * block.flammabilityScale, explosiveness * 3.5f * block.explosivenessScale, power, tilesize * block.size / 2f, state.rules.damageExplosions, block.destroyEffect, block.baseShake);
 
         if(block.createRubble && !floor().solid && !floor().isLiquid){
-            Effect.rubble(x, y, block.size);
+            Effect.rubble(absoluteX, absoluteY, effectHeight(), tiles, block.size);
         }
     }
 
@@ -1749,7 +1772,7 @@ abstract class BuildingComp implements Posc, Teamc, Healthc, Buildingc, Timerc, 
 
         if(power != null){
             for(int i = 0; i < power.links.size; i++){
-                var other = world.build(power.links.items[i]);
+                var other = tiles.build(power.links.items[i]);
 
                 if(other != null && other.team != team && other.power != null){
                     power.links.removeIndex(i);
@@ -1800,7 +1823,7 @@ abstract class BuildingComp implements Posc, Teamc, Healthc, Buildingc, Timerc, 
 
         Point2[] nearby = Edges.getEdges(block.size);
         for(Point2 point : nearby){
-            Building other = world.build(tile.x + point.x, tile.y + point.y);
+            Building other = tiles.build(tile.x + point.x, tile.y + point.y);
             //remove this tile from all nearby tile's proximities
             if(other != null){
                 tmpTiles.add(other);
@@ -1820,7 +1843,7 @@ abstract class BuildingComp implements Posc, Teamc, Healthc, Buildingc, Timerc, 
 
         Point2[] nearby = Edges.getEdges(block.size);
         for(Point2 point : nearby){
-            Building other = world.build(tile.x + point.x, tile.y + point.y);
+            Building other = tiles.build(tile.x + point.x, tile.y + point.y);
 
             if(other == null || other.team != team) continue;
 
@@ -2178,7 +2201,7 @@ abstract class BuildingComp implements Posc, Teamc, Healthc, Buildingc, Timerc, 
     public void killed(){
         dead = true;
         Events.fire(new BlockDestroyEvent(tile));
-        block.destroySound.at(tile, Mathf.random(block.destroyPitchMin, block.destroyPitchMax));
+        block.destroySound.at(tile.absolutePos(), Mathf.random(block.destroyPitchMin, block.destroyPitchMax));
         onDestroyed();
         if(tile != emptyTile){
             tile.remove();
@@ -2197,6 +2220,8 @@ abstract class BuildingComp implements Posc, Teamc, Healthc, Buildingc, Timerc, 
     @Replace
     @Override
     public void update(){
+        ZDraw.height = effectHeight();
+        updateAbsolute();
 
         //TODO refactor to timestamp-based system?
         if((timeScaleDuration -= Time.delta) <= 0f || !block.canOverdrive){

@@ -2,6 +2,7 @@ package mindustry.entities.comp;
 
 import arc.util.io.*;
 import mindustry.annotations.Annotations.*;
+import mindustry.graphics.*;
 import mindustry.entities.*;
 import mindustry.gen.*;
 
@@ -17,7 +18,8 @@ abstract class EntityComp{
         return added;
     }
 
-    void update(){}
+    void update(){
+    }
 
     void remove(){
         added = false;

@@ -74,6 +74,9 @@ public class Predict{
             ddx -= h.deltaX();
             ddy -= h.deltaY();
         }
+        if(src instanceof TilesRelativec abs){
+            return intercept(abs.getAbsoluteX(), abs.getAbsoluteY(), dst.getX() + offsetx, dst.getY() + offsety, ddx, ddy, v);
+        }
         return intercept(src.getX(), src.getY(), dst.getX() + offsetx, dst.getY() + offsety, ddx, ddy, v);
     }
 

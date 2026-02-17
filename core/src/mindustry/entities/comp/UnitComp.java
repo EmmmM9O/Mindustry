@@ -33,12 +33,13 @@ import static mindustry.Vars.*;
 import static mindustry.logic.GlobalVars.*;
 
 @Component(base = true)
-abstract class UnitComp implements Healthc, Physicsc, Hitboxc, Statusc, Teamc, Itemsc, Rotc, Unitc, Weaponsc, Drawc, Syncc, Shieldc, Displayable, Ranged, Minerc, Builderc, Senseable, Settable{
+abstract class UnitComp implements Heightc, Healthc, Physicsc, Hitboxc, Statusc, Teamc, Itemsc, Rotc, Unitc, Weaponsc, Drawc, Syncc, Shieldc, Displayable, Ranged, Minerc, Builderc, Senseable, Settable{
     private static final Vec2 tmp1 = new Vec2(), tmp2 = new Vec2();
     static final float warpDst = 8f;
 
     @Import boolean dead, disarmed;
-    @Import float x, y, rotation, maxHealth, drag, armor, hitSize, health, shield, ammo, dragMultiplier, armorOverride, speedMultiplier;
+    @Import
+    float x, y, rotation, maxHealth, drag, armor, hitSize, health, shield, ammo, dragMultiplier, armorOverride, speedMultiplier, height;
     @Import Team team;
     @Import int id;
     @Import @Nullable Tile mineTile;

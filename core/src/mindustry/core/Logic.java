@@ -213,6 +213,11 @@ public class Logic implements ApplicationListener{
                 state.stats.unitsCreated++;
             }
         });
+
+        Events.on(SaveLoadEvent.class, e -> {
+            if(world.tiles.craft == null) world.tiles.setCraft(TilesUnitTypes.fixedTiles.spawnCraft(0f, 0f));
+            Events.fire(Trigger.tilesInit);
+        });
     }
 
     private void checkOverlappingPlans(Team team, Tile tile){
@@ -428,6 +433,7 @@ public class Logic implements ApplicationListener{
         PerfCounter.frame.begin();
 
         Events.fire(Trigger.update);
+        world.update();
         universe.updateGlobal();
 
         if(Core.settings.modified() && !state.isPlaying()){

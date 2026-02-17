@@ -69,6 +69,10 @@ public class Packets{
 
     }
 
+    public static class TilesStream extends Streamable{
+
+    }
+
     /** Marks the beginning of a stream. */
     public static class StreamBegin extends Packet{
         private static int lastid;

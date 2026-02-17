@@ -926,6 +926,12 @@ public class BulletType extends Content implements Cloneable{
 
         bullet.initVel(angle, speed * velocityScl * (velocityScaleRandMin != 1f || velocityScaleRandMax != 1f ? Mathf.random(velocityScaleRandMin, velocityScaleRandMax) : 1f));
         bullet.set(x, y);
+        if(owner instanceof Heightc heightc){
+            bullet.height = heightc.height() + 4f;
+        }
+        if(owner instanceof Building bu){
+            bullet.height = bu.effectHeight();
+        }
         bullet.lastX = x;
         bullet.lastY = y;
         bullet.lifetime = lifetime * lifetimeScl * (lifeScaleRandMin != 1f || lifeScaleRandMax != 1f ? Mathf.random(lifeScaleRandMin, lifeScaleRandMax) : 1f);

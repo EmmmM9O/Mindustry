@@ -25,7 +25,6 @@ public abstract class RendererI implements ApplicationListener{
     public final LightRenderer lights = new LightRenderer();
     public final Pixelator pixelator = new Pixelator();
 
-    public ObjectMap<String, Runnable> customBackgrounds = new ObjectMap<>();
     public TextureRegion[] bubbles = new TextureRegion[16], splashes = new TextureRegion[12];
     public TextureRegion[][] fluidFrames;
 
@@ -33,7 +32,7 @@ public abstract class RendererI implements ApplicationListener{
     public @Nullable Bloom bloom;
     public @Nullable FrameBuffer backgroundBuffer;
     public FrameBuffer effectBuffer = new FrameBuffer();
-    public boolean animateShields, animateWater, drawWeather = true, drawStatus, enableEffects, drawDisplays = true, drawLight = true, pixelate = false;
+    public boolean animateShields, animateWater, drawWeather = true, drawStatus, enableEffects, drawDisplays = true, drawLight = true, pixelate = false, drawUnitShaodw = true;
     public float weatherAlpha;
     /** minZoom = zooming out, maxZoom = zooming in, used by cutscenes */
     public float minZoom = 1.5f, maxZoom = 6f;

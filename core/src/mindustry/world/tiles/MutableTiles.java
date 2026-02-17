@@ -1,13 +1,17 @@
-package mindustry.world;
+package mindustry.world.tiles;
 
 import arc.func.*;
 import arc.struct.*;
 import arc.util.*;
 import mindustry.gen.*;
+import mindustry.io.*;
+import mindustry.content.*;
+import mindustry.world.*;
 
+import java.io.*;
 import java.util.*;
 
-public class CreateTiles extends Tiles{
+public class MutableTiles extends Tiles{
     public static int max = 250;
     public static int w = max * 2 + 1;
 
@@ -19,8 +23,9 @@ public class CreateTiles extends Tiles{
     final IntMap<Puddle> puddles;
     final IntMap<Fire> fires;
 
-    public CreateTiles(){
+    public MutableTiles(){
         super(0, 0);
+        type = 2;
         map = new IntMap<>();
         puddles = new IntMap<>();
         fires = new IntMap<>();
@@ -34,7 +39,7 @@ public class CreateTiles extends Tiles{
     @Override
     public void setPuddle(int pos, Puddle p){
         puddles.put(pos, p);
-        updateWH(pos % w, pos / w);
+        updateWH(pos % w - max, pos / w - max);
     }
 
     @Nullable
@@ -46,7 +51,7 @@ public class CreateTiles extends Tiles{
     @Override
     public void setFire(int pos, Fire f){
         fires.put(pos, f);
-        updateWH(pos % w, pos / w);
+        updateWH(pos % w - max, pos / w - max);
     }
 
     @Override
@@ -54,17 +59,16 @@ public class CreateTiles extends Tiles{
         IntMap.Keys keys = map.keys();
         while(keys.hasNext){
             int key = keys.next();
-            cons.get(key % w, key / w);
+            cons.get(key % w - max, key / w - max);
         }
     }
 
     @Override
     public void fill(){
         IntMap.Keys keys = map.keys();
-        int w = 2 * max + 1;
         while(keys.hasNext){
             int key = keys.next();
-            map.put(key, new Tile(key % w, key / w, key, this));
+            map.put(key, new Tile(key % w - max, key / w - max, key, this));
         }
     }
 
@@ -111,6 +115,7 @@ public class CreateTiles extends Tiles{
     @Override
     public void set(int x, int y, Tile tile){
         int hash = hash(x, y);
+        tile.tiles = this;
         tile.id = hash;
         map.put(hash, tile);
         updateWH(x, y);
@@ -118,6 +123,7 @@ public class CreateTiles extends Tiles{
 
     @Override
     public void seti(int i, Tile tile){
+        tile.tiles = this;
         tile.id = i;
         map.put(i, tile);
         updateWH(i % w, i / w);
@@ -125,7 +131,7 @@ public class CreateTiles extends Tiles{
 
     @Override
     public Tile get(int x, int y){
-        return map.get(hash(x, y));
+        return map.get(hash(x, y), (Tile)null);
     }
 
     @Override
@@ -143,5 +149,48 @@ public class CreateTiles extends Tiles{
     @Override
     public Iterator<Tile> iterator(){
         return map.values().iterator();
+    }
+
+    @Override
+    public void write(DataOutput stream, SaveVersion version) throws IOException{
+        stream.writeShort(getMinX());
+        stream.writeShort(getMinY());
+        stream.writeShort(getMaxX());
+        stream.writeShort(getMaxY());
+        for(int y = getMinY(); y <= getMaxY(); y++){
+            for(int x = getMinX(); x <= getMaxX(); x++){
+                Tile tile = get(x, y);
+                if(tile == null){
+                    stream.writeByte(0);
+                    continue;
+                }
+                stream.writeByte(1);
+
+                stream.writeShort(tile.floorID());
+                stream.writeShort(tile.overlayID());
+
+                writeBlock(stream, tile, version);
+            }
+        }
+    }
+
+    @Override
+    public void read(DataInput stream, SaveVersion version) throws IOException{
+        minX = stream.readShort();
+        minY = stream.readShort();
+        maxX = stream.readShort();
+        maxY = stream.readShort();
+        for(int y = getMinY(); y <= getMaxY(); y++){
+            for(int x = getMinX(); x <= getMaxX(); x++){
+                byte type = stream.readByte();
+                if(type == 0) continue;
+                short floorid = stream.readShort();
+                short oreid = stream.readShort();
+                Tile tile = create(x, y, floorid, oreid, (short)0);
+
+                readBlock(stream, tile, version);
+            }
+        }
+        endLoad();
     }
 }

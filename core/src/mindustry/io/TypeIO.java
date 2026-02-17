@@ -84,9 +84,11 @@ public class TypeIO{
             write.d(d);
         }else if(object instanceof Building b){
             write.b(12);
+            write.s(b.id);
             write.i(b.pos());
         }else if(object instanceof BuildingBox b){
             write.b(12);
+            write.s(b.id);
             write.i(b.pos);
         }else if(object instanceof LAccess l){
             write.b((byte)13);
@@ -172,7 +174,7 @@ public class TypeIO{
             case 9 -> content.<UnlockableContent>getByID(ContentType.all[read.b()], read.s()).techNode;
             case 10 -> read.bool();
             case 11 -> read.d();
-            case 12 -> !box ? world.build(read.i()) : new BuildingBox(read.i());
+            case 12 -> !box ? world.getTiles(read.s()).build(read.i()) : new BuildingBox(read.s(), read.i());
             case 13 -> LAccess.all[read.s()];
             case 14 -> {
                 int blen = read.i();
@@ -325,8 +327,9 @@ public class TypeIO{
         write.b(unit == null ? 0 : unit instanceof BlockUnitc ? 1 : 2);
 
         //block units are special
-        if(unit instanceof BlockUnitc){
-            write.i(((BlockUnitc)unit).tile().pos());
+        if(unit instanceof BlockUnitc u){
+            write.i(u.tile().pos());
+            writeTiles(write, u.tile().tiles);
         }else if(unit == null){
             write.i(0);
         }else{
@@ -342,7 +345,7 @@ public class TypeIO{
         if(type == 2){ //standard unit
             return Groups.unit.getByID(id);
         }else if(type == 1){ //block
-            Building tile = world.build(id);
+            Building tile = readTiles(read).build(id);
             return tile instanceof ControlBlock cont ? cont.unit() : null;
         }
         return null;
@@ -376,19 +379,21 @@ public class TypeIO{
     }
 
     public static void writeBuilding(Writes write, Building tile){
+        writeTiles(write, tile == null ? world.tiles : tile.tiles);
         write.i(tile == null ? -1 : tile.pos());
     }
 
     public static Building readBuilding(Reads read){
-        return world.build(read.i());
+        return readTiles(read).build(read.i());
     }
 
     public static void writeTile(Writes write, Tile tile){
+        writeTiles(write, tile == null ? world.tiles : tile.tiles);
         write.i(tile == null ? Point2.pack(-1, -1) : tile.pos());
     }
 
     public static Tile readTile(Reads read){
-        return world.tile(read.i());
+        return readTiles(read).tile(read.i());
     }
 
     public static void writeBlock(Writes write, Block block){
@@ -523,6 +528,7 @@ public class TypeIO{
             write.i(p.id);
         }else if(control instanceof LogicAI logic && logic.controller != null){
             write.b(3);
+            writeTiles(write, logic.controller.tiles);
             write.i(logic.controller.pos());
         }else if(control instanceof CommandAI ai){
             write.b(9);
@@ -536,6 +542,7 @@ public class TypeIO{
             if(ai.attackTarget != null){
                 write.b(ai.attackTarget instanceof Building ? 1 : 0);
                 if(ai.attackTarget instanceof Building b){
+                    writeTiles(write, b.tiles);
                     write.i(b.pos());
                 }else{
                     write.i(((Unit)ai.attackTarget).id);
@@ -547,6 +554,7 @@ public class TypeIO{
             for(var pos : ai.commandQueue){
                 if(pos instanceof Building b){
                     write.b(0);
+                    writeTiles(write, b.tiles);
                     write.i(b.pos());
                 }else if(pos instanceof Unit u){
                     write.b(1);
@@ -590,16 +598,17 @@ public class TypeIO{
             read.i();
             return prev;
         }else if(type == 3){
+            Tiles tiles = readTiles(read);
             int pos = read.i();
             if(prev instanceof LogicAI pai){
-                pai.controller = world.build(pos);
+                pai.controller = tiles.build(pos);
                 return pai;
             }else{
                 //create new AI for assignment
                 LogicAI out = new LogicAI();
                 //instantly time out when updated.
                 out.controlTimer = LogicAI.logicControlTimeout;
-                out.controller = world.build(pos);
+                out.controller = tiles.build(pos);
                 return out;
             }
             //type 4 is the old CommandAI with no commandIndex, type 6 is the new one with the index as a single byte, type 7 is the one with the command queue, 8 adds a stance, 9 adds multiple stances
@@ -619,7 +628,7 @@ public class TypeIO{
             if(hasAttack){
                 byte entityType = read.b();
                 if(entityType == 1){
-                    ai.attackTarget = world.build(read.i());
+                    ai.attackTarget = readTiles(read).build(read.i());
                 }else{
                     ai.attackTarget = Groups.unit.getByID(ai.readAttackTarget = read.i());
                 }
@@ -641,7 +650,7 @@ public class TypeIO{
                     int commandType = read.b();
                     switch(commandType){
                         case 0 -> {
-                            var build = world.build(read.i());
+                            var build = readTiles(read).build(read.i());
                             if(build != null) ai.commandQueue.add(build);
                         }
                         case 1 -> {
@@ -1095,6 +1104,14 @@ public class TypeIO{
         }
     }
 
+    public static void writeTiles(Writes write, Tiles tiles){
+        write.s(tiles.id);
+    }
+
+    public static Tiles readTiles(Reads read){
+        return world.getTiles(read.s());
+    }
+
     /** Converter of an ID to a content instance. */
     public interface ContentMapper{
         Content get(ContentType type, int id);
@@ -1107,20 +1124,27 @@ public class TypeIO{
     /** Represents a building that has not been resolved yet. */
     public static class BuildingBox implements Boxed<Building>{
         public int pos;
+        public short id;
 
         public BuildingBox(int pos){
+            this((short)0, pos);
+        }
+
+        public BuildingBox(short id, int pos){
             this.pos = pos;
+            this.id = id;
         }
 
         @Override
         public Building unbox(){
-            return world.build(pos);
+            return world.getTiles(id).build(pos);
         }
 
         @Override
         public String toString(){
             return "BuildingBox{" +
             "pos=" + pos +
+            "id=" + id +
             '}';
         }
     }

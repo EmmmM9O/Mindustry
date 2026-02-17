@@ -13,6 +13,7 @@ import mindustry.gen.*;
 import mindustry.io.*;
 import mindustry.maps.*;
 import mindustry.world.*;
+import mindustry.world.tiles.*;
 import mindustry.world.blocks.environment.*;
 
 import static mindustry.Vars.*;

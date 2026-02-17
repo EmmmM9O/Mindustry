@@ -57,6 +57,7 @@ public class DrawTurret extends DrawBlock{
 
     @Override
     public void draw(Building build){
+        ZDraw.realZ(0f);
         Turret turret = (Turret)build.block;
         TurretBuild tb = (TurretBuild)build;
 
@@ -65,13 +66,16 @@ public class DrawTurret extends DrawBlock{
 
         Draw.z(shadowLayer);
 
+        ZDraw.realZ(1f);
         Drawf.shadow(preview, build.x + tb.recoilOffset.x - turret.elevation, build.y + tb.recoilOffset.y - turret.elevation, tb.drawrot());
 
         Draw.z(turretLayer);
 
+        ZDraw.realZ(2f);
         drawTurret(turret, tb);
         drawHeat(turret, tb);
 
+        float rot = build.getTilesRotation();
         if(parts.size > 0){
             if(outline.found()){
                 //draw outline under everything when parts are involved
@@ -83,13 +87,14 @@ public class DrawTurret extends DrawBlock{
             float progress = tb.progress();
 
             //TODO no smooth reload
-            var params = DrawPart.params.set(build.warmup(), 1f - progress, 1f - progress, tb.heat, tb.curRecoil, tb.charge, tb.x + tb.recoilOffset.x, tb.y + tb.recoilOffset.y, tb.rotation);
+            var params = DrawPart.params.set(build.warmup(), 1f - progress, 1f - progress, tb.heat, tb.curRecoil, tb.charge, tb.x + tb.recoilOffset.x, tb.y + tb.recoilOffset.y, tb.rotation - rot);
 
             for(var part : parts){
                 params.setRecoil(part.recoilIndex >= 0 && tb.curRecoils != null ? tb.curRecoils[part.recoilIndex] : tb.curRecoil);
                 part.draw(params);
             }
         }
+        ZDraw.realZ(0f);
     }
 
     public void drawTurret(Turret block, TurretBuild build){

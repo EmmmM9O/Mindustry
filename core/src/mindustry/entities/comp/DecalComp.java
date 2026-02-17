@@ -9,7 +9,7 @@ import mindustry.graphics.*;
 
 @EntityDef(value = {Decalc.class}, pooled = true, serialize = false)
 @Component(base = true)
-abstract class DecalComp implements Drawc, Timedc, Rotc, Posc{
+abstract class DecalComp implements Drawc, Timedc, Rotc, Posc, Heightc{
     @Import float x, y, rotation;
 
     Color color = new Color(1, 1, 1, 1);

@@ -22,6 +22,7 @@ import mindustry.world.meta.*;
 
 import static mindustry.Vars.*;
 
+//TODO
 /** Class used for indexing special target blocks for AI. */
 public class BlockIndexer{
     /** Size of one quadrant. */

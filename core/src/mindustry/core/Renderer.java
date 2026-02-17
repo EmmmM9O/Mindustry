@@ -26,6 +26,7 @@ import static arc.Core.*;
 import static mindustry.Vars.*;
 
 public class Renderer extends RendererI{
+
     /** These are global variables, for headless access. Cached. */
     public static float laserOpacity = 0.5f, unitLaserOpacity = 1f, bridgeOpacity = 0.75f;
 
@@ -36,6 +37,7 @@ public class Renderer extends RendererI{
     //for landTime > 0: if true, core is currently *launching*, otherwise landing.
     private Vec2 camShakeOffset = new Vec2();
     private int glErrors;
+    public ObjectMap<String, Runnable> customBackgrounds = new ObjectMap<>();
     BlockRenderer blocksL;
 
     public Renderer(){

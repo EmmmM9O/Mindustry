@@ -173,7 +173,7 @@ public class PayloadBlock extends Block{
 
         public void updatePayload(){
             if(payload != null){
-                payload.set(x + payVector.x, y + payVector.y, payRotation);
+                payload.set(absoluteX + payVector.x, absoluteY + payVector.y, payRotation);
             }
         }
 

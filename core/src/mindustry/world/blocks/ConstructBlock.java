@@ -61,8 +61,8 @@ public class ConstructBlock extends Block{
 
         Team team = tile.team();
         if(!headless && fogControl.isVisibleTile(Vars.player.team(), tile.x, tile.y)){
-            block.breakEffect.at(tile.drawx(), tile.drawy(), block.size, block.mapColor);
-            if(shouldPlay()) block.breakSound.at(tile, block.breakPitchChange ? calcPitch(false) : 1f);
+            block.breakEffect.at(tile.absDrawx(), tile.absDrawy(), tile.effectHeight(), block.size, block.mapColor, null);
+            if(shouldPlay()) block.breakSound.at(tile.absolutePos(), block.breakPitchChange ? calcPitch(false) : 1f);
         }
         Events.fire(new BlockBuildEndEvent(tile, builder, team, true, null));
         tile.remove();
@@ -111,8 +111,8 @@ public class ConstructBlock extends Block{
         }
 
         if(fogControl.isVisibleTile(team, tile.x, tile.y)){
-            block.placeEffect.at(tile.drawx(), tile.drawy(), block.size);
-            if(shouldPlay()) block.placeSound.at(tile, block.placePitchChange ? calcPitch(true) : 1f);
+            block.placeEffect.at(tile.absDrawx(), tile.absDrawy(), tile.effectHeight(), block.size);
+            if(shouldPlay()) block.placeSound.at(tile.absolutePos(), block.placePitchChange ? calcPitch(true) : 1f);
         }
 
         block.placeEnded(tile, builder, rotation, config);
@@ -214,10 +214,10 @@ public class ConstructBlock extends Block{
 
         @Override
         public void onDestroyed(){
-            Fx.blockExplosionSmoke.at(tile);
+            Fx.blockExplosionSmoke.at(tile.absDrawx(), tile.absDrawy(), tile.effectHeight(), 0f);
 
             if(!tile.floor().solid && tile.floor().hasSurface()){
-                Effect.rubble(x, y, size);
+                Effect.rubble(absoluteX, absoluteY, effectHeight(), size);
             }
         }
 

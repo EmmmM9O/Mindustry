@@ -557,11 +557,11 @@ public class Mods implements Loadable{
         }
 
         sortMods();
+        buildFiles();
         orderedMods().each(p->p.state == ModState.enabled, p -> runMod(p, m -> loadModPreloader(m)));
     }
 
     public void load(){
-        buildFiles();
         orderedMods().each(p->p.state == ModState.enabled, p -> runMod(p, m -> loadModMain(m)));
     } 
 

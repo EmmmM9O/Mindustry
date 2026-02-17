@@ -6,7 +6,7 @@ import mindustry.world.*;
 import mindustry.gen.*;
 
 public abstract class BlockRendererI {
-    public final FloorRenderer floor = new FloorRenderer();
+    public FloorRendererI floor;
 
     public abstract void reload();
 

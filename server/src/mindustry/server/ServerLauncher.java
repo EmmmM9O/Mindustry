@@ -25,8 +25,6 @@ public class ServerLauncher implements ApplicationListener{
     public static void main(String[] args){
         try{
             ServerLauncher.args = args;
-            Vars.platform = new Platform(){};
-            Vars.net = new Net(platform.getNet());
 
             logger = (level1, text) -> {
                 String result = "[" + dateTime.format(LocalDateTime.now()) + "] " + format(tags[level1.ordinal()] + " " + text + "&fr");
@@ -43,8 +41,15 @@ public class ServerLauncher implements ApplicationListener{
         Core.settings.setDataDirectory(Core.files.local("config"));
         loadLocales = false;
         headless = true;
+        Vars.tree = new FileTree();
+        Vars.mods = new Mods();
+        Vars.preinit();
+        mods.eachPreloader(l -> l.beforeAll());
+        Vars.platform = new Platform(){
+        };
+        Vars.net = new Net(platform.getNet());
 
-        Vars.loadSettings();
+        mods.eachPreloader(Preloader::preload);
         Vars.init();
 
         UI.loadColors();

@@ -8,6 +8,8 @@ class GroupDefs<G>{
     @GroupDef(value = Playerc.class, mapping = true) G player;
     @GroupDef(value = Bulletc.class, spatial = true, collide = true) G bullet;
     @GroupDef(value = Unitc.class, spatial = true, mapping = true) G unit;
+    @GroupDef(value = TilesCraftc.class, mapping = true)
+    G craft;
     @GroupDef(value = Buildingc.class) G build;
     @GroupDef(value = Syncc.class, mapping = true) G sync;
     @GroupDef(value = Drawc.class) G draw;

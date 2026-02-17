@@ -70,6 +70,7 @@ public abstract class SaveVersion extends SaveFileReader{
         try{
             if(version >= 11) readRegion("patches", stream, counter, this::readContentPatches);
             readRegion("map", stream, counter, in -> readMap(in, context));
+            if(version >= 12) readRegion("tiles", stream, counter, this::readTiles);
             readRegion("entities", stream, counter, this::readEntities);
             if(version >= 8) readRegion("markers", stream, counter, this::readMarkers);
             readRegion("custom", stream, counter, this::readCustomChunks);
@@ -83,6 +84,7 @@ public abstract class SaveVersion extends SaveFileReader{
         writeRegion("content", stream, this::writeContentHeader);
         writeRegion("patches", stream, this::writeContentPatches);
         writeRegion("map", stream, this::writeMap);
+        writeRegion("tiles", stream, this::writeTiles);
         writeRegion("entities", stream, this::writeEntities);
         writeRegion("markers", stream, this::writeMarkers);
         writeRegion("custom", stream, s -> writeCustomChunks(s, false));
@@ -198,6 +200,18 @@ public abstract class SaveVersion extends SaveFileReader{
         )) : worldmap;
     }
 
+    public void writeTiles(DataOutput stream) throws IOException{
+        stream.writeInt(world.tilesSize() - 1);
+        for(int i = 1; i < world.allTiles.size; i++){
+            Tiles tiles = world.allTiles.get(i);
+            if(tiles == null) continue;
+            Log.debug("Write Tiles @ id @", tiles, tiles.id);
+            stream.writeByte(tiles.type);
+            stream.writeInt(tiles.id);
+            tiles.write(stream, this);
+        }
+    }
+
     public void writeMap(DataOutput stream) throws IOException{
         //write world size
         stream.writeShort(world.width());
@@ -275,6 +289,29 @@ public abstract class SaveVersion extends SaveFileReader{
                 i += consecutives;
             }
         }
+    }
+
+    public void readTiles(DataInput stream) throws IOException{
+        Time.mark();
+        int amount = stream.readInt();
+        for(int i = 0; i < amount; i++){
+            int typeid = stream.readUnsignedByte();
+
+            Prov<Tiles> prov = TilesHandler.tilesType.get(typeid, () -> (Tiles)null);
+            Tiles tiles = prov.get();
+            if(tiles == null){
+                throw new IOException("Unknown tiles typeid " + typeid);
+            }
+
+            int id = stream.readInt();
+            Log.debug("Loading @ id @", tiles, id);
+
+            tiles.id = id;
+            tiles.read(stream, this);
+            world.setTiles(tiles, id);
+        }
+        world.resetEmpty();
+        Log.debug("Load @ extra Tiles in @ms", amount, Time.elapsed());
     }
 
     public void readMap(DataInput stream, WorldContext context) throws IOException{
@@ -460,7 +497,6 @@ public abstract class SaveVersion extends SaveFileReader{
     }
 
     public void readWorldEntities(DataInput stream, Prov[] mapping) throws IOException{
-
         int amount = stream.readInt();
         for(int j = 0; j < amount; j++){
             readChunkReads(stream, (in, len) -> {

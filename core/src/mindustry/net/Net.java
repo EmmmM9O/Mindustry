@@ -46,6 +46,7 @@ public class Net{
         registerPacket(StreamBegin::new);
         registerPacket(StreamChunk::new);
         registerPacket(WorldStream::new);
+        registerPacket(TilesStream::new);
         registerPacket(ConnectPacket::new);
 
         //register generated packet classes

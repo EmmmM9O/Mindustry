@@ -496,6 +496,8 @@ public class UnitType extends UnlockableContent implements Senseable{
     protected float buildTime = -1f;
     protected @Nullable ItemStack[] totalRequirements, cachedRequirements, firstRequirements;
 
+    public float defaultHeight = 16f;
+
     public UnitType(String name){
         super(name);
 
@@ -521,6 +523,7 @@ public class UnitType extends UnlockableContent implements Senseable{
         }
         unit.ammo = ammoCapacity; //fill up on ammo upon creation
         unit.elevation = flying ? 1f : 0;
+        unit.height = flying ? defaultHeight : 0f;
         unit.heal();
         if(unit instanceof TimedKillc u){
             u.lifetime(lifetime);
@@ -1578,6 +1581,7 @@ public class UnitType extends UnlockableContent implements Senseable{
     }
 
     public void drawShadow(Unit unit){
+        if(!renderer.drawUnitShaodw) return;
         float e = Mathf.clamp(unit.elevation, shadowElevation, 1f) * shadowElevationScl * (1f - unit.drownTime);
         float x = unit.x + shadowTX * e, y = unit.y + shadowTY * e;
         Floor floor = world.floorWorld(x, y);
@@ -1600,6 +1604,7 @@ public class UnitType extends UnlockableContent implements Senseable{
     }
 
     public void drawSoftShadow(float x, float y, float rotation, float alpha){
+        if(!renderer.drawUnitShaodw) return;
         Draw.color(0, 0, 0, 0.4f * alpha);
         float rad = 1.6f;
         float size = Math.max(region.width, region.height) * region.scl() * softShadowScl;

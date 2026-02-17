@@ -102,16 +102,29 @@ public class Effect{
         return new WrapEffect(this, color, rotation);
     }
 
-    public void at(Position pos){
-        create(pos.getX(), pos.getY(), 0, Color.white, null);
+    public static void shake(float intensity, float duration, Position loc){
+        if(loc instanceof TilesRelativec t) shake(intensity, duration, t.absoluteX(), t.absoluteY());
+        else shake(intensity, duration, loc.getX(), loc.getY());
     }
 
-    public void at(Position pos, boolean parentize){
-        create(pos.getX(), pos.getY(), 0, Color.white, parentize ? pos : null);
+    public static void decal(TextureRegion region, float x, float y, float rotation, float lifetime, Color color){
+        decal(region, x, y, ZDraw.height, world.tiles, rotation, lifetime, color);
     }
 
-    public void at(Position pos, float rotation){
-        create(pos.getX(), pos.getY(), rotation, Color.white, null);
+    public static void decal(TextureRegion region, float x, float y, float height, Tiles tiles, float rotation, float lifetime, Color color){
+        if(headless || region == null || !Core.atlas.isFound(region)) return;
+
+        Tile tile = tiles.tileWorld(x, y);
+        if(tile == null || !tile.floor().hasSurface()) return;
+
+        Decal decal = Decal.create();
+        decal.height = height;
+        decal.set(x, y);
+        decal.rotation(rotation);
+        decal.lifetime(lifetime);
+        decal.color().set(color);
+        decal.region(region);
+        decal.add();
     }
 
     public void at(float x, float y){
@@ -120,6 +133,13 @@ public class Effect{
 
     public void at(float x, float y, float rotation){
         create(x, y, rotation, Color.white, null);
+    }
+
+    public static void rubble(float x, float y, float height, Tiles tiles, int blockSize){
+        if(headless) return;
+
+        TextureRegion region = Core.atlas.find("rubble-" + blockSize + "-" + (Core.atlas.has("rubble-" + blockSize + "-1") ? Mathf.random(0, 1) : "0"));
+        decal(region, x, y, height, tiles, Mathf.random(4) * 90, 3600, Pal.rubble);
     }
 
     public void at(float x, float y, float rotation, Color color){
@@ -134,54 +154,43 @@ public class Effect{
         create(x, y, rotation, color, data);
     }
 
+    public static void rubble(float x, float y, float height, int blockSize){
+        rubble(x, y, ZDraw.height, world.tiles, blockSize);
+    }
+
     public void at(float x, float y, float rotation, Object data){
         create(x, y, rotation, Color.white, data);
+    }
+
+    public static void rubble(float x, float y, int blockSize){
+        rubble(x, y, ZDraw.height, blockSize);
     }
 
     public boolean shouldCreate(){
         return !headless && this != Fx.none && Vars.renderer.enableEffects;
     }
 
-    public void create(float x, float y, float rotation, Color color, Object data){
-        if(!shouldCreate()) return;
-
-        if(Core.camera.bounds(Tmp.r1).overlaps(Tmp.r2.setCentered(x, y, clip))){
-            if(!initialized){
-                initialized = true;
-                init();
-            }
-
-            if(startDelay <= 0f){
-                add(x, y, rotation, color, data);
-            }else{
-                Time.run(startDelay, () -> add(x, y, rotation, color, data));
-            }
-        }
+    public void at(Position pos){
+        if(pos instanceof Heightc h) create(pos.getX(), pos.getY(), h.height(), 0, Color.white, null);
+        else create(pos.getX(), pos.getY(), 0f, 0, Color.white, null);
     }
 
-    protected void add(float x, float y, float rotation, Color color, Object data){
-        var entity = EffectState.create();
-        entity.effect = this;
-        entity.rotation = baseRotation + rotation;
-        entity.data = data;
-        entity.lifetime = lifetime;
-        entity.set(x, y);
-        entity.color.set(color);
-        if(followParent && data instanceof Posc p){
-            entity.parent = p;
-            entity.rotWithParent = rotWithParent;
-        }
-        entity.add();
+    public void at(Position pos, boolean parentize){
+        if(pos instanceof Heightc h) create(pos.getX(), pos.getY(), h.height(), 0, Color.white, parentize ? pos : null);
+        else create(pos.getX(), pos.getY(), 0f, 0, Color.white, parentize ? pos : null);
     }
 
-    public float render(int id, Color color, float life, float lifetime, float rotation, float x, float y, Object data){
-        container.set(id, color, life, lifetime, rotation, x, y, data);
-        Draw.z(layer);
-        Draw.reset();
-        render(container);
-        Draw.reset();
+    public void at(Position pos, float rotation){
+        if(pos instanceof Heightc h) create(pos.getX(), pos.getY(), h.height(), rotation, Color.white, null);
+        else create(pos.getX(), pos.getY(), 0f, rotation, Color.white, null);
+    }
 
-        return container.lifetime;
+    public void at(float x, float y, float height, float rotation){
+        create(x, y, height, rotation, Color.white, null);
+    }
+
+    public void at(float x, float y, float height, float rotation, Color color, Object data){
+        create(x, y, height, rotation, color, data);
     }
 
     public void render(EffectContainer e){
@@ -207,8 +216,8 @@ public class Effect{
         shake(Mathf.clamp(1f / (distance * distance / shakeFalloff)) * intensity, duration);
     }
 
-    public static void shake(float intensity, float duration, Position loc){
-        shake(intensity, duration, loc.getX(), loc.getY());
+    public void at(float x, float y, float height, float rotation, Object data){
+        create(x, y, height, rotation, Color.white, data);
     }
 
     public static void floorDust(float x, float y, float size){
@@ -231,19 +240,25 @@ public class Effect{
         decal(region, x, y, rotation, 3600f, Pal.rubble);
     }
 
-    public static void decal(TextureRegion region, float x, float y, float rotation, float lifetime, Color color){
-        if(headless || region == null || !Core.atlas.isFound(region)) return;
+    public void create(float x, float y, float rotation, Color color, Object data){
+        create(x, y, ZDraw.height, rotation, color, data);
+    }
 
-        Tile tile = world.tileWorld(x, y);
-        if(tile == null || !tile.floor().hasSurface()) return;
+    public void create(float x, float y, float height, float rotation, Color color, Object data){
+        if(!shouldCreate()) return;
 
-        Decal decal = Decal.create();
-        decal.set(x, y);
-        decal.rotation(rotation);
-        decal.lifetime(lifetime);
-        decal.color().set(color);
-        decal.region(region);
-        decal.add();
+        if(Core.camera.bounds(Tmp.r1).overlaps(Tmp.r2.setCentered(x, y, clip))){
+            if(!initialized){
+                initialized = true;
+                init();
+            }
+
+            if(startDelay <= 0f){
+                add(x, y, height, rotation, color, data);
+            }else{
+                Time.run(startDelay, () -> add(x, y, height, rotation, color, data));
+            }
+        }
     }
 
     public static void scorch(float x, float y, int size){
@@ -255,21 +270,49 @@ public class Effect{
         decal(region, x, y, Mathf.random(4) * 90, 3600, Pal.rubble);
     }
 
-    public static void rubble(float x, float y, int blockSize){
-        if(headless) return;
+    protected void add(float x, float y, float height, float rotation, Color color, Object data){
+        var entity = EffectState.create();
+        entity.effect = this;
+        entity.rotation = baseRotation + rotation;
+        entity.data = data;
+        entity.lifetime = lifetime;
+        entity.set(x, y);
+        entity.height = height;
+        entity.color.set(color);
+        if(followParent && data instanceof Posc p){
+            entity.parent = p;
+            entity.rotWithParent = rotWithParent;
+        }
+        if(height == ZDraw.height && followParent && data instanceof Heightc p) entity.height = p.height();
+        entity.add();
+    }
 
-        TextureRegion region = Core.atlas.find("rubble-" + blockSize + "-" + (Core.atlas.has("rubble-" + blockSize + "-1") ? Mathf.random(0, 1) : "0"));
-        decal(region, x, y, Mathf.random(4) * 90, 3600, Pal.rubble);
+    public float render(int id, Color color, float life, float lifetime, float rotation, float x, float y, Object data){
+        return render(id, color, life, lifetime, rotation, x, y, ZDraw.height, data);
+    }
+
+    public float render(int id, Color color, float life, float lifetime, float rotation, float x, float y, float height, Object data){
+        container.set(id, color, life, lifetime, rotation, x, y, height, data);
+        Draw.z(layer);
+        Draw.reset();
+        render(container);
+        Draw.reset();
+
+        return container.lifetime;
     }
 
     public static class EffectContainer implements Scaled{
-        public float x, y, time, lifetime, rotation;
+        public float x, y, height, time, lifetime, rotation;
         public Color color;
         public int id;
         public Object data;
         private EffectContainer innerContainer;
 
         public void set(int id, Color color, float life, float lifetime, float rotation, float x, float y, Object data){
+            set(id, color, life, lifetime, rotation, x, y, ZDraw.height, data);
+        }
+
+        public void set(int id, Color color, float life, float lifetime, float rotation, float x, float y, float height, Object data){
             this.x = x;
             this.y = y;
             this.color = color;
@@ -291,7 +334,7 @@ public class Effect{
         public void scaled(float lifetime, Cons<EffectContainer> cons){
             if(innerContainer == null) innerContainer = new EffectContainer();
             if(time <= lifetime){
-                innerContainer.set(id, color, time, lifetime, rotation, x, y, data);
+                innerContainer.set(id, color, time, lifetime, rotation, x, y, height, data);
                 cons.get(innerContainer);
             }
         }

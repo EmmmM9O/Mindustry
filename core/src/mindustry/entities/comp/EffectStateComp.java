@@ -7,8 +7,9 @@ import mindustry.gen.*;
 
 @EntityDef(value = {EffectStatec.class, Childc.class}, pooled = true, serialize = false)
 @Component(base = true)
-abstract class EffectStateComp implements Posc, Drawc, Timedc, Rotc, Childc{
-    @Import float time, lifetime, rotation, x, y;
+abstract class EffectStateComp implements Posc, Drawc, Timedc, Rotc, Childc, Heightc{
+    @Import
+    float time, lifetime, rotation, x, y, height;
     @Import int id;
 
     Color color = new Color(Color.white);
@@ -17,7 +18,7 @@ abstract class EffectStateComp implements Posc, Drawc, Timedc, Rotc, Childc{
 
     @Override
     public void draw(){
-        lifetime = effect.render(id, color, time, lifetime, rotation, x, y, data);
+        lifetime = effect.render(id, color, time, lifetime, rotation, x, y, height, data);
     }
 
     @Replace

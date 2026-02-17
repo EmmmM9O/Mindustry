@@ -6,6 +6,7 @@ import arc.math.geom.*;
 import arc.struct.*;
 import arc.util.*;
 import mindustry.gen.*;
+import mindustry.graphics.*;
 
 import java.util.*;
 
@@ -82,6 +83,7 @@ public class EntityGroup<T extends Entityc> implements Iterable<T>{
     public void update(){
         for(index = 0; index < array.size; index++){
             array.items[index].update();
+            ZDraw.height = 6f;
         }
     }
 

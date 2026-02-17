@@ -3,10 +3,17 @@ package mindustry.mod;
 import mindustry.*;
 
 public abstract class Preloader {
-    public void preload(){
-
+    /* even before the batch */
+    public void beforeAll(){
     }
-    public void modifyApplication(ClientLauncher launcher){
 
+    /* Similar to before all but only called on client*/
+    public void setupGraphics(){
+    }
+
+    public void modifyApplication(ClientLauncher launcher){
+    }
+
+    public void preload(){
     }
 }

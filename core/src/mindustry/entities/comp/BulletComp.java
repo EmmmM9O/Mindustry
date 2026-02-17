@@ -22,10 +22,11 @@ import static mindustry.Vars.*;
 
 @EntityDef(value = {Bulletc.class}, pooled = true, serialize = false)
 @Component(base = true)
-abstract class BulletComp implements Timedc, Damagec, Hitboxc, Teamc, Posc, Drawc, Shielderc, Ownerc, Bulletc, Timerc{
+abstract class BulletComp implements Heightc, Timedc, Damagec, Hitboxc, Teamc, Posc, Drawc, Shielderc, Ownerc, Bulletc, Timerc{
     @Import Team team;
     @Import Entityc owner;
-    @Import float x, y, damage, lastX, lastY, time, lifetime;
+    @Import
+    float x, y, damage, lastX, lastY, time, lifetime, height;
 
     IntSeq collided = new IntSeq(6);
     BulletType type;

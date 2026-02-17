@@ -146,6 +146,11 @@ public class NetClient implements ApplicationListener{
 
             finishConnecting();
         });
+
+        net.handleClient(TilesStream.class, data -> {
+            Log.info("Received tiles data: @ bytes.", data.stream.available());
+            NetworkIO.loadTiles(new InflaterInputStream(data.stream));
+        });
     }
 
     public void addPacketHandler(String type, Cons<String> handler){
@@ -693,6 +698,7 @@ public class NetClient implements ApplicationListener{
             uid,
             dead,
             dead ? player.x : unit.x, dead ? player.y : unit.y,
+            dead ? 0 : unit.height,
             dead ? 0f : unit.aimX(), dead ? 0f : unit.aimY(),
             unit == null ? 0f : unit.rotation,
             unit instanceof Mechc m ? m.baseRotation() : 0,

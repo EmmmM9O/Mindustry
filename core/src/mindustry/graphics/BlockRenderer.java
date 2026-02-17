@@ -52,6 +52,7 @@ public class BlockRenderer extends BlockRendererI{
     private FloorQuadtree floorTree = new FloorQuadtree(new Rect(0, 0, 1, 1));
 
     public BlockRenderer(){
+        floor = new FloorRenderer();
 
         Events.on(ClientLoadEvent.class, e -> {
             cracks = new TextureRegion[maxCrackSize][crackRegions];

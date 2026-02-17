@@ -127,6 +127,7 @@ importPackage(Packages.mindustry.world.consumers)
 importPackage(Packages.mindustry.world.draw)
 importPackage(Packages.mindustry.world.meta)
 importPackage(Packages.mindustry.world.modules)
+importPackage(Packages.mindustry.world.tiles)
 const AdminRequestEvent = Packages.mindustry.game.EventType.AdminRequestEvent
 const PlayerIpUnbanEvent = Packages.mindustry.game.EventType.PlayerIpUnbanEvent
 const PlayerIpBanEvent = Packages.mindustry.game.EventType.PlayerIpBanEvent

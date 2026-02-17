@@ -29,7 +29,7 @@ import static mindustry.Vars.*;
  * 3. bind each mesh individually, draw it
  *
  * */
-public class FloorRenderer{
+public class FloorRenderer extends FloorRendererI{
     private static final VertexAttribute[] attributes = {VertexAttribute.packedPosition, VertexAttribute.color, VertexAttribute.packedTexCoords};
     private static final int
         chunksize = 30, //todo 32?
@@ -116,23 +116,28 @@ public class FloorRenderer{
         Events.on(WorldLoadEvent.class, event -> reload());
     }
 
+    @Override
     public IndexData getIndexData(){
         return indexData;
     }
 
+    @Override
     public float[] getVertexBuffer(){
         return vertices;
     }
 
+    @Override
     /** Queues up a cache change for a tile. Only runs in render loop. */
     public void recacheTile(Tile tile){
         recacheTile(tile.x, tile.y);
     }
 
+    @Override
     public void recacheTile(int x, int y){
         recacheSet.add(Point2.pack(x / chunksize, y / chunksize));
     }
 
+    @Override
     public void drawFloor(){
         if(cache == null){
             return;
@@ -192,10 +197,12 @@ public class FloorRenderer{
         underwaterDraw.clear();
     }
 
+    @Override
     public void checkChanges(){
         checkChanges(false);
     }
 
+    @Override
     public void checkChanges(boolean ignoreWalls){
         if(recacheSet.size > 0){
             //recache one chunk at a time
@@ -209,10 +216,12 @@ public class FloorRenderer{
         }
     }
 
+    @Override
     public void drawUnderwater(Runnable run){
         underwaterDraw.add(run);
     }
 
+    @Override
     public void beginDraw(){
         if(cache == null){
             return;
@@ -230,6 +239,7 @@ public class FloorRenderer{
         Gl.enable(Gl.blend);
     }
 
+    @Override
     public void drawLayer(CacheLayer layer){
         if(cache == null){
             return;
@@ -359,10 +369,7 @@ public class FloorRenderer{
         return mesh;
     }
 
-    public void reload(){
-        reload(false);
-    }
-
+    @Override
     public void reload(boolean ignoreWalls){
         //dispose all old meshes
         if(cache != null){

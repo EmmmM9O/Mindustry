@@ -6,19 +6,28 @@ import arc.math.geom.*;
 import arc.math.geom.QuadTree.*;
 import arc.struct.*;
 import arc.util.*;
+import mindustry.io.*;
 import mindustry.gen.*;
+import mindustry.content.*;
+import mindustry.world.blocks.legacy.*;
 
+import java.io.*;
 import java.util.*;
+
+import static mindustry.Vars.*;
 
 /** A tile container. */
 public abstract class Tiles implements Iterable<Tile>, QuadTreeObject{
     public int width;
     public int height;
+    public int type;
 
     public Tiles(int width, int height){
         this.width = width;
         this.height = height;
     }
+
+    public TilesCraftc craft;
 
     public abstract Puddle getPuddle(int pos);
 
@@ -71,51 +80,32 @@ public abstract class Tiles implements Iterable<Tile>, QuadTreeObject{
 
     public abstract void eachTile(Cons<Tile> cons);
 
-    public int id = -1;
+    public int id;
 
-    protected float rotation;
-
-    public float getOriginX(){
-        return originX;
+    public void reset(int width, int height){
     }
 
-    public void setOriginX(float originX){
-        this.originX = originX;
-        resetMat();
+    @Nullable
+    public Tile tile(int pos){
+        return tile(Point2.x(pos), Point2.y(pos));
     }
 
-    protected float originX;
-
-    public float getOriginY(){
-        return originY;
+    @Nullable
+    public Tile tile(int x, int y){
+        return get(x, y);
     }
 
-    public void setOriginY(float originY){
-        this.originY = originY;
-        resetMat();
+    public Tile rawTile(int x, int y){
+        return getn(x, y);
     }
 
-    protected float originY;
-
-    public float getOffsetX(){
-        return offsetX;
+    @Nullable
+    public Building build(int x, int y){
+        Tile tile = tile(x, y);
+        if(tile == null) return null;
+        return tile.build;
     }
 
-    public void setOffsetX(float offsetX){
-        this.offsetX = offsetX;
-        resetMat();
-    }
-
-    protected float offsetX;
-
-    public float getOffsetY(){
-        return offsetY;
-    }
-
-    public void setOffsetY(float offsetY){
-        this.offsetY = offsetY;
-        resetMat();
-    }
 
     public int getMinX(){
         return 0;
@@ -132,100 +122,166 @@ public abstract class Tiles implements Iterable<Tile>, QuadTreeObject{
     public int getMaxY(){
         return height;
     }
-    protected float offsetY;
-    public Mat rotateMat = new Mat(),
-    trans = new Mat(), inv = new Mat();
-    public static Mat tmpM = new Mat();
 
-    public Tiles root, father;
-
-    public void setFather(Tiles father){
-        this.father = father;
-        if(father == null)
-            root = this;
-        else root = father.root;
-        for(Tiles child : children){
-            child.root = root;
-        }
-    }
-
-    public Seq<Tiles> children = Seq.with();
     public float tilesize = 8f;
 
-    public float getRotation(){
-        return rotation;
+    @Nullable
+    public Building build(int pos){
+        Tile tile = tile(pos);
+        if(tile == null) return null;
+        return tile.build;
     }
 
-    public void resetMat(){
-        trans(trans);
-        inv(inv);
-        if(father != null && root != father){
-            // We do not want to compute root's mat
-            trans.mul(father.trans);
-            inv.mul(father.inv);
-        }
-        update();
+    @Nullable
+    public Tile tileWorld(float x, float y){
+        return get(Math.round(x / tilesize), Math.round(y / tilesize));
     }
 
-    void updateRotation(){
-        rotateMat.setToRotation(rotation);
-        resetMat();
+    public void removeCraft(){
+        if(craft == null) return;
+        craft.remove();
+        craft.tiles(null);
+        craft = null;
     }
 
-    public void update(){
-        for(Tiles child : children){
-            child.resetMat();
-        }
-    }
-
-    public Mat trans(Mat mat){
-        return mat.setToTranslation(originX + offsetX, originY + offsetY).mul(rotateMat).translate(-originX, -originY);
-    }
-
-    public Mat inv(Mat mat){
-        return mat.setToTranslation(originX, originY).mul(tmpM.set(rotateMat).transpose()).translate(-originX - offsetX, -originY - offsetY);
-    }
-
-    public void setRotation(float rotation){
-        this.rotation = rotation;
-        updateRotation();
-    }
-
-    public static Vec2[] tmp = {new Vec2(), new Vec2(), new Vec2(), new Vec2()};
-
-    public static Rect rect(Rect rect, Mat mat){
-        tmp[0].set(rect.x, rect.y);
-        tmp[1].set(rect.x + rect.width, rect.y);
-        tmp[2].set(rect.x + rect.width, rect.y + rect.height);
-        tmp[3].set(rect.x, rect.y + rect.height);
-        float minX = Float.POSITIVE_INFINITY;
-        float maxX = Float.NEGATIVE_INFINITY;
-        float minY = Float.POSITIVE_INFINITY;
-        float maxY = Float.NEGATIVE_INFINITY;
-        for(int i = 0; i < 4; i++){
-            tmp[i].mul(mat);
-            minX = Math.min(minX, tmp[i].x);
-            maxX = Math.max(maxX, tmp[i].x);
-            minY = Math.min(minY, tmp[i].y);
-            maxY = Math.max(maxY, tmp[i].y);
-        }
-        rect.x = minX;
-        rect.y = minY;
-        rect.width = maxX - minX;
-        rect.height = maxY - minY;
-        return rect;
-    }
-
-    public Rect oriRect(Rect out){
-        return out.set(getMinX() * tilesize - tilesize / 2, getMinY() * tilesize - tilesize / 2, width * tilesize, height * tilesize);
+    public void setCraft(TilesCraftc value){
+        if(value == craft) return;
+        if(craft != null) removeCraft();
+        craft = value;
+        if(craft != null) craft.tiles(this);
     }
 
     @Override
     public void hitbox(Rect out){
-        if(root == this){
-            oriRect(out);
-        }else{
-            rect(oriRect(out), trans);
+        if(craft == null) out.set(0f, 0f, width * tilesize, height * tilesize);
+        else craft.hitbox(out);
+    }
+
+    public boolean writeBlock(DataOutput stream, Tile tile, SaveVersion version) throws IOException{
+        stream.writeShort(tile.blockID());
+
+        boolean savedata = tile.shouldSaveData();
+
+        //in the old version, the second bit was set to indicate presence of data, but that approach was flawed - it didn't allow buildings + data on the same tile
+        //so now the third bit is used instead
+        byte packed = (byte)((tile.build != null ? 1 : 0) | (savedata ? 4 : 0));
+
+        //make note of whether there was an entity or custom tile data here
+        stream.writeByte(packed);
+
+        if(savedata){
+            //the new 'extra data' format writes 7 bytes of data instead of 1
+            stream.writeByte(tile.data);
+            stream.writeByte(tile.floorData);
+            stream.writeByte(tile.overlayData);
+            stream.writeInt(tile.extraData);
+        }
+
+        //only write the entity for multiblocks once - in the center
+        if(tile.build != null){
+            if(tile.isCenter()){
+                stream.writeBoolean(true);
+                version.writeChunk(stream, out -> {
+                    out.b(tile.build.version());
+                    tile.build.writeAll(out);
+                });
+            }else{
+                stream.writeBoolean(false);
+            }
+        }else if(!savedata){ //don't write consecutive blocks when there is custom data
+            return true;
+        }
+        return false;
+    }
+
+    public Block readBlock(DataInput stream, Tile tile, SaveVersion version) throws IOException{
+        Block block = content.block(stream.readShort());
+        if(block == null) block = Blocks.air;
+        boolean isCenter = true;
+        byte packedCheck = stream.readByte();
+        boolean hadEntity = (packedCheck & 1) != 0;
+        //data check (bit 3): 7 bytes (3x block-specific bytes + 1x 4-byte extra data int)
+        boolean hadData = (packedCheck & 4) != 0;
+
+        byte data = 0, floorData = 0, overlayData = 0;
+        int extraData = 0;
+
+        if(hadData){
+            data = stream.readByte();
+            floorData = stream.readByte();
+            overlayData = stream.readByte();
+            extraData = stream.readInt();
+        }
+
+        if(hadEntity){
+            isCenter = stream.readBoolean();
+        }
+
+        //set block only if this is the center; otherwise, it's handled elsewhere
+        if(isCenter){
+            tile.setBlock(block);
+        }
+
+        //must be assigned after setBlock, because that can reset data
+        if(hadData){
+            tile.data = data;
+            tile.floorData = floorData;
+            tile.overlayData = overlayData;
+            tile.extraData = extraData;
+            onReadTileData();
+        }
+
+        if(hadEntity){
+            if(isCenter){ //only read entity for center blocks
+                if(block.hasBuilding()){
+                    try{
+                        version.readChunkReads(stream, (in, len) -> {
+                            byte revision = in.b();
+                            tile.build.readAll(in, revision);
+                        });
+                    }catch(Throwable e){
+                        throw new IOException("Failed to read tile entity of block: " + block, e);
+                    }
+                }else{
+                    //skip the entity region, as the entity and its IO code are now gone
+                    version.skipChunk(stream);
+                }
+
+                onReadBuilding();
+            }
+        }else if(!hadData){
+            return block;//never read consecutive blocks if there's data
+        }
+        return null;
+    }
+
+    public abstract void write(DataOutput stream, SaveVersion version) throws IOException;
+
+    public abstract void read(DataInput stream, SaveVersion version) throws IOException;
+
+    public Tile create(int x, int y, int floorID, int overlayID, int wallID){
+        Tile tile = new Tile(x, y, floorID, overlayID, wallID, this);
+        set(x, y, tile);
+        return tile;
+    }
+
+    public void onReadTileData(){
+    }
+
+    public void onReadBuilding(){
+    }
+
+    public void endLoad(){
+        for(Tile tile : this){
+            //remove legacy blocks; they need to stop existing
+            if(tile.block() instanceof LegacyBlock l){
+                l.removeSelf(tile);
+                continue;
+            }
+
+            if(tile.build != null){
+                tile.build.updateProximity();
+            }
         }
     }
 }

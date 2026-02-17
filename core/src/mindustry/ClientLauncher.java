@@ -74,6 +74,11 @@ public abstract class ClientLauncher extends ApplicationCore implements Platform
         if(!OS.isIos){
             Log.info("[RAM] Available: @ @", Strings.fixed(gb ? ram / 1024f / 1024 / 1024f : ram / 1024f / 1024f, 1), gb ? "GB" : "MB");
         }
+        tree = new FileTree();
+        mods = new Mods();
+        Vars.preinit();
+        mods.eachPreloader(l -> l.beforeAll());
+        mods.eachPreloader(l -> l.setupGraphics());
 
         Time.setDeltaProvider(() -> {
             float result = Core.graphics.getDeltaTime() * 60f;
@@ -81,11 +86,10 @@ public abstract class ClientLauncher extends ApplicationCore implements Platform
         });
 
         UI.loadColors();
-        batch = new SpriteBatch();
+        if(batch == null) batch = new SpriteBatch();
         assets = new AssetManager();
         assets.setLoader(Texture.class, "." + mapExtension, new MapPreviewLoader());
 
-        tree = new FileTree();
         assets.setLoader(Sound.class, new SoundLoader(tree){
             @Override
             public void loadAsync(AssetManager manager, String fileName, Fi file, SoundParameter parameter){
@@ -149,9 +153,7 @@ public abstract class ClientLauncher extends ApplicationCore implements Platform
         atlas = TextureAtlas.blankAtlas();
         Vars.net = new Net(platform.getNet());
         MapPreviewLoader.setupLoaders();
-        mods = new Mods();
         schematics = new Schematics();
-        Vars.preinit();
         mods.eachPreloader(l -> l.modifyApplication(this));
 
         Fonts.loadSystemCursors();

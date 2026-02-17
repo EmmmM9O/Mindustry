@@ -58,7 +58,8 @@ public class EventType{
         //skybox drawn and bloom is enabled - use Vars.renderer.planets
         universeDraw,
         //planets drawn and bloom disabled
-        universeDrawEnd
+        universeDrawEnd,
+        tilesInit
     }
 
     public static class WinEvent{}

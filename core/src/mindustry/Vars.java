@@ -290,6 +290,8 @@ public class Vars implements Loadable{
 
     public static @Nullable Player player;
 
+    public static ZDraw zdraw = new ZDraw();
+
     public static void preinit(){
         loadSettings();
         Version.init();

@@ -9,6 +9,7 @@ import arc.struct.*;
 import arc.util.*;
 import arc.util.noise.*;
 import mindustry.*;
+import mindustry.annotations.Annotations.*;
 import mindustry.content.*;
 import mindustry.core.GameState.*;
 import mindustry.ctype.*;
@@ -22,6 +23,7 @@ import mindustry.maps.filters.*;
 import mindustry.maps.filters.GenerateFilter.*;
 import mindustry.type.*;
 import mindustry.world.*;
+import mindustry.world.tiles.*;
 import mindustry.world.blocks.environment.*;
 import mindustry.world.blocks.legacy.*;
 
@@ -53,8 +55,38 @@ public class World{
         });
     }
 
+    @Remote
+    public static void createTiles(int type, int width, int height, int id){
+        Prov<Tiles> prov = TilesHandler.tilesType.get(type, () -> (Tiles)null);
+        Tiles tiles = prov.get();
+        if(tiles == null){
+            return;
+        }
+        tiles.reset(width, height);
+        world.setTiles(tiles, id);
+        world.resetEmpty();
+    }
+
     public Seq<Tiles> allTiles = Seq.with();
     public IntQueue emptyQueue = new IntQueue();
+
+    @Remote
+    public static void removeTiles(int id){
+        Tiles tiles = world.getTiles(id);
+        if(tiles != null) world.remove(tiles);
+    }
+
+    public void update(){
+        if(tiles.craft != null) tiles.craft.updateMat();
+    }
+
+    public int tilesSize(){
+        return allTiles.size - emptyQueue.size;
+    }
+
+    public Tiles getTiles(int id){
+        return allTiles.get(id);
+    }
 
     public void add(Tiles tiles){
         if(emptyQueue.isEmpty()){
@@ -65,13 +97,35 @@ public class World{
             allTiles.set(tiles.id, tiles);
         }
         tilesTree.insert(tiles);
+        Call.createTiles(tiles.type, tiles.width, tiles.height, tiles.id);
+    }
+
+    public void setTiles(Tiles tiles, int id){
+        while(allTiles.size <= id){
+            allTiles.add((Tiles)null);
+        }
+        allTiles.set(id, tiles);
+        tilesTree.insert(tiles);
+    }
+
+    public void resetEmpty(){
+        emptyQueue.clear();
+        for(int i = 0; i < allTiles.size; i++){
+            Tiles t = allTiles.get(i);
+            if(t == null){
+                emptyQueue.addLast(i);
+            }
+        }
     }
 
     public void remove(Tiles tiles){
+        int id = tiles.id;
         allTiles.set(tiles.id, null);
         emptyQueue.addLast(tiles.id);
         tiles.id = -1;
+        tiles.removeCraft();
         tilesTree.remove(tiles);
+        Call.removeTiles(id);
     }
 
     public void reset(){
@@ -85,7 +139,9 @@ public class World{
         allTiles.add(tiles);
         emptyQueue.clear();
         if(width != 0 && height != 0){
-            tilesTree = new TilesQuadMap(tiles.oriRect(new Rect()));
+            Rect rect = new Rect();
+            tiles.hitbox(rect);
+            tilesTree = new TilesQuadMap(rect);
             tilesTree.insert(tiles);
         }
     }
@@ -234,8 +290,8 @@ public class World{
 
         if(tiles.width != width || tiles.height != height){
             tiles = new WorldTiles(width, height);
-            onReset(width, height);
         }
+        onReset(width, height);
 
         return tiles;
     }
@@ -643,7 +699,7 @@ public class World{
 
         @Override
         public Tile create(int x, int y, int floorID, int overlayID, int wallID){
-            Tile tile = new Tile(x, y, floorID, overlayID, wallID);
+            Tile tile = new Tile(x, y, floorID, overlayID, wallID, tiles);
             tiles.set(x, y, tile);
             return tile;
         }

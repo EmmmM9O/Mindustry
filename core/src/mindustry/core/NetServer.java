@@ -38,7 +38,7 @@ public class NetServer implements ApplicationListener{
     private static final int maxSnapshotSize = 800;
     private static final int timerBlockSync = 0, timerHealthSync = 1;
     private static final float blockSyncTime = 60 * 6, healthSyncTime = 30;
-    private static final FloatBuffer fbuffer = FloatBuffer.allocate(20);
+    private static final FloatBuffer fbuffer = FloatBuffer.allocate(25);
     private static final Writes dataWrites = new Writes(null);
     private static final IntSeq hiddenIds = new IntSeq();
     private static final IntSeq healthSeq = new IntSeq(maxSnapshotSize / 4 + 1);
@@ -98,7 +98,7 @@ public class NetServer implements ApplicationListener{
 
     private boolean closing = false, pvpAutoPaused = true;
     private Interval timer = new Interval(10);
-    private IntSet buildHealthChanged = new IntSet();
+    private IntMap<IntSet> buildHealthChanged = IntMap.of();
 
     /** Current kick session. */
     public @Nullable VoteSession currentlyKicking = null;
@@ -513,134 +513,13 @@ public class NetServer implements ApplicationListener{
         debug("Packed @ bytes of world data to @ (@ / @)", stream.size(), player.name, player.con.address, player.uuid());
     }
 
-    public void addPacketHandler(String type, Cons2<Player, String> handler){
-        customPacketHandlers.get(type, Seq::new).add(handler);
-    }
-
-    public Seq<Cons2<Player, String>> getPacketHandlers(String type){
-        return customPacketHandlers.get(type, Seq::new);
-    }
-
-    public void addBinaryPacketHandler(String type, Cons2<Player, byte[]> handler){
-        customBinaryPacketHandlers.get(type, Seq::new).add(handler);
-    }
-
-    public Seq<Cons2<Player, byte[]>> getBinaryPacketHandlers(String type){
-        return customBinaryPacketHandlers.get(type, Seq::new);
-    }
-
-    public void addLogicDataHandler(String type, Cons2<Player, Object> handler){
-        logicClientDataHandlers.get(type, Seq::new).add(handler);
-    }
-
-    public static void onDisconnect(Player player, String reason){
-        //singleplayer multiplayer weirdness
-        if(player.con == null){
-            player.remove();
-            return;
-        }
-
-        if(!player.con.hasDisconnected){
-            if(player.con.hasConnected){
-                Events.fire(new PlayerLeave(player));
-                if(Config.showConnectMessages.bool()) Call.sendMessage("[accent]" + player.name + "[accent] has disconnected.");
-                Call.playerDisconnect(player.id());
-            }
-
-            String message = Strings.format("&lb@&fi&lk has disconnected. [&lb@&fi&lk] (@)", player.plainName(), player.uuid(), reason);
-            if(Config.showConnectMessages.bool()) info(message);
-        }
-
-        player.remove();
-        player.con.hasDisconnected = true;
-    }
-
-    //these functions are for debugging only, and will be removed!
-
-    @Remote(targets = Loc.client, variants = Variant.one)
-    public static void requestDebugStatus(Player player){
-        int flags =
-        (player.con.hasDisconnected ? 1 : 0) |
-        (player.con.hasConnected ? 2 : 0) |
-        (player.isAdded() ? 4 : 0) |
-        (player.con.hasBegunConnecting ? 8 : 0);
-
-        Call.debugStatusClient(player.con, flags, player.con.lastReceivedClientSnapshot, player.con.snapshotsSent);
-        Call.debugStatusClientUnreliable(player.con, flags, player.con.lastReceivedClientSnapshot, player.con.snapshotsSent);
-    }
-
-    @Remote(variants = Variant.both, priority = PacketPriority.high)
-    public static void debugStatusClient(int value, int lastClientSnapshot, int snapshotsSent){
-        logClientStatus(true, value, lastClientSnapshot, snapshotsSent);
-    }
-
-    @Remote(variants = Variant.both, priority = PacketPriority.high, unreliable = true)
-    public static void debugStatusClientUnreliable(int value, int lastClientSnapshot, int snapshotsSent){
-        logClientStatus(false, value, lastClientSnapshot, snapshotsSent);
-    }
-
-    static void logClientStatus(boolean reliable, int value, int lastClientSnapshot, int snapshotsSent){
-        Log.info("@ Debug status received. disconnected = @, connected = @, added = @, begunConnecting = @ lastClientSnapshot = @, snapshotsSent = @",
-        reliable ? "[RELIABLE]" : "[UNRELIABLE]",
-        (value & 1) != 0, (value & 2) != 0, (value & 4) != 0, (value & 8) != 0,
-        lastClientSnapshot, snapshotsSent
-        );
-    }
-
-    @Remote(targets = Loc.client)
-    public static void serverPacketReliable(Player player, String type, String contents){
-        if(netServer.customPacketHandlers.containsKey(type)){
-            for(Cons2<Player, String> c : netServer.customPacketHandlers.get(type)){
-                c.get(player, contents);
-            }
-        }
-    }
-
-    @Remote(targets = Loc.client, unreliable = true)
-    public static void serverPacketUnreliable(Player player, String type, String contents){
-        serverPacketReliable(player, type, contents);
-    }
-
-    @Remote(targets = Loc.client)
-    public static void serverBinaryPacketReliable(Player player, String type, byte[] contents){
-        if(netServer.customBinaryPacketHandlers.containsKey(type)){
-            for(var c : netServer.customBinaryPacketHandlers.get(type)){
-                c.get(player, contents);
-            }
-        }
-    }
-
-    @Remote(targets = Loc.client, unreliable = true)
-    public static void serverBinaryPacketUnreliable(Player player, String type, byte[] contents){
-        serverBinaryPacketReliable(player, type, contents);
-    }
-
-    @Remote(targets = Loc.client)
-    public static void clientLogicDataReliable(Player player, String channel, Object value){
-        Seq<Cons2<Player, Object>> handlers = netServer.logicClientDataHandlers.get(channel);
-        if(handlers != null){
-            for(Cons2<Player, Object> handler : handlers){
-                handler.get(player, value);
-            }
-        }
-    }
-
-    @Remote(targets = Loc.client, unreliable = true)
-    public static void clientLogicDataUnreliable(Player player, String channel, Object value){
-        clientLogicDataReliable(player, channel, value);
-    }
-
-    private static boolean invalid(float f){
-        return Float.isInfinite(f) || Float.isNaN(f);
-    }
-
     @Remote(targets = Loc.client, unreliable = true, priority = PacketPriority.high)
     public static void clientSnapshot(
     Player player,
     int snapshotID,
     int unitID,
     boolean dead,
-    float x, float y,
+    float x, float y, float height,
     float pointerX, float pointerY,
     float rotation, float baseRotation,
     float xVelocity, float yVelocity,
@@ -655,6 +534,7 @@ public class NetServer implements ApplicationListener{
         //validate coordinates just in case
         if(invalid(x)) x = 0f;
         if(invalid(y)) y = 0f;
+        if(invalid(height)) height = 0f;
         if(invalid(xVelocity)) xVelocity = 0f;
         if(invalid(yVelocity)) yVelocity = 0f;
         if(invalid(pointerX)) pointerX = 0f;
@@ -733,40 +613,45 @@ public class NetServer implements ApplicationListener{
 
             //ignore the position if the player thinks they're dead, or the unit is wrong
             boolean ignorePosition = dead || unit.id != unitID;
-            float newx = unit.x, newy = unit.y;
+            float newx = unit.x, newy = unit.y, newh = unit.height;
 
             if(!ignorePosition){
                 unit.vel.set(xVelocity, yVelocity).limit(maxSpeed);
+                //TODO height check
 
                 vector.set(x, y).sub(unit);
                 vector.limit(maxMove);
 
-                float prevx = unit.x, prevy = unit.y;
+                float prevx = unit.x, prevy = unit.y, prevh = unit.height;
                 if(!unit.isFlying()){
                     unit.move(vector.x, vector.y);
                 }else{
                     unit.trns(vector.x, vector.y);
                 }
+                unit.height = height;
 
                 newx = unit.x;
                 newy = unit.y;
+                newh = unit.height;
 
                 if(!verifyPosition){
                     unit.set(prevx, prevy);
                     newx = x;
                     newy = y;
+                    newh = height;
                 }else if(!Mathf.within(x, y, newx, newy, correctDist)){
                     Call.setPosition(player.con, newx, newy); //teleport and correct position when necessary
                 }
             }
 
             //write sync data to the buffer
-            fbuffer.limit(20);
+            fbuffer.limit(25);
             fbuffer.position(0);
 
             //now, put the new position, rotation and baserotation into the buffer so it can be read
             //TODO this is terrible
             if(unit instanceof Mechc) fbuffer.put(baseRotation); //base rotation is optional
+            fbuffer.put(height);
             fbuffer.put(rotation); //rotation is always there
             fbuffer.put(newx);
             fbuffer.put(newy);
@@ -781,6 +666,142 @@ public class NetServer implements ApplicationListener{
 
         con.lastReceivedClientSnapshot = snapshotID;
         con.lastReceivedClientTime = Time.millis();
+    }
+
+    public static void onDisconnect(Player player, String reason){
+        //singleplayer multiplayer weirdness
+        if(player.con == null){
+            player.remove();
+            return;
+        }
+
+        if(!player.con.hasDisconnected){
+            if(player.con.hasConnected){
+                Events.fire(new PlayerLeave(player));
+                if(Config.showConnectMessages.bool()) Call.sendMessage("[accent]" + player.name + "[accent] has disconnected.");
+                Call.playerDisconnect(player.id());
+            }
+
+            String message = Strings.format("&lb@&fi&lk has disconnected. [&lb@&fi&lk] (@)", player.plainName(), player.uuid(), reason);
+            if(Config.showConnectMessages.bool()) info(message);
+        }
+
+        player.remove();
+        player.con.hasDisconnected = true;
+    }
+
+    @Remote(targets = Loc.client, variants = Variant.one)
+    public static void requestDebugStatus(Player player){
+        int flags =
+        (player.con.hasDisconnected ? 1 : 0) |
+        (player.con.hasConnected ? 2 : 0) |
+        (player.isAdded() ? 4 : 0) |
+        (player.con.hasBegunConnecting ? 8 : 0);
+
+        Call.debugStatusClient(player.con, flags, player.con.lastReceivedClientSnapshot, player.con.snapshotsSent);
+        Call.debugStatusClientUnreliable(player.con, flags, player.con.lastReceivedClientSnapshot, player.con.snapshotsSent);
+    }
+
+    @Remote(variants = Variant.both, priority = PacketPriority.high)
+    public static void debugStatusClient(int value, int lastClientSnapshot, int snapshotsSent){
+        logClientStatus(true, value, lastClientSnapshot, snapshotsSent);
+    }
+
+    @Remote(variants = Variant.both, priority = PacketPriority.high, unreliable = true)
+    public static void debugStatusClientUnreliable(int value, int lastClientSnapshot, int snapshotsSent){
+        logClientStatus(false, value, lastClientSnapshot, snapshotsSent);
+    }
+
+    static void logClientStatus(boolean reliable, int value, int lastClientSnapshot, int snapshotsSent){
+        Log.info("@ Debug status received. disconnected = @, connected = @, added = @, begunConnecting = @ lastClientSnapshot = @, snapshotsSent = @",
+        reliable ? "[RELIABLE]" : "[UNRELIABLE]",
+        (value & 1) != 0, (value & 2) != 0, (value & 4) != 0, (value & 8) != 0,
+        lastClientSnapshot, snapshotsSent
+        );
+    }
+
+    @Remote(targets = Loc.client)
+    public static void serverPacketReliable(Player player, String type, String contents){
+        if(netServer.customPacketHandlers.containsKey(type)){
+            for(Cons2<Player, String> c : netServer.customPacketHandlers.get(type)){
+                c.get(player, contents);
+            }
+        }
+    }
+
+    @Remote(targets = Loc.client, unreliable = true)
+    public static void serverPacketUnreliable(Player player, String type, String contents){
+        serverPacketReliable(player, type, contents);
+    }
+
+    //these functions are for debugging only, and will be removed!
+
+    @Remote(targets = Loc.client)
+    public static void serverBinaryPacketReliable(Player player, String type, byte[] contents){
+        if(netServer.customBinaryPacketHandlers.containsKey(type)){
+            for(var c : netServer.customBinaryPacketHandlers.get(type)){
+                c.get(player, contents);
+            }
+        }
+    }
+
+    @Remote(targets = Loc.client, unreliable = true)
+    public static void serverBinaryPacketUnreliable(Player player, String type, byte[] contents){
+        serverBinaryPacketReliable(player, type, contents);
+    }
+
+    @Remote(targets = Loc.client)
+    public static void clientLogicDataReliable(Player player, String channel, Object value){
+        Seq<Cons2<Player, Object>> handlers = netServer.logicClientDataHandlers.get(channel);
+        if(handlers != null){
+            for(Cons2<Player, Object> handler : handlers){
+                handler.get(player, value);
+            }
+        }
+    }
+
+    @Remote(targets = Loc.client, unreliable = true)
+    public static void clientLogicDataUnreliable(Player player, String channel, Object value){
+        clientLogicDataReliable(player, channel, value);
+    }
+
+    private static boolean invalid(float f){
+        return Float.isInfinite(f) || Float.isNaN(f);
+    }
+
+    public void sendTilesData(Tiles tiles){
+        Groups.player.each(p -> sendTilesData(p, tiles));
+    }
+
+    public void addPacketHandler(String type, Cons2<Player, String> handler){
+        customPacketHandlers.get(type, Seq::new).add(handler);
+    }
+
+    public Seq<Cons2<Player, String>> getPacketHandlers(String type){
+        return customPacketHandlers.get(type, Seq::new);
+    }
+
+    public void addBinaryPacketHandler(String type, Cons2<Player, byte[]> handler){
+        customBinaryPacketHandlers.get(type, Seq::new).add(handler);
+    }
+
+    public Seq<Cons2<Player, byte[]>> getBinaryPacketHandlers(String type){
+        return customBinaryPacketHandlers.get(type, Seq::new);
+    }
+
+    public void addLogicDataHandler(String type, Cons2<Player, Object> handler){
+        logicClientDataHandlers.get(type, Seq::new).add(handler);
+    }
+
+    public void sendTilesData(Player player, Tiles tiles){
+        ByteArrayOutputStream stream = new ByteArrayOutputStream();
+        DeflaterOutputStream def = new FastDeflaterOutputStream(stream);
+        NetworkIO.writeTiles(tiles, def);
+        TilesStream data = new TilesStream();
+        data.stream = new ByteArrayInputStream(stream.toByteArray());
+        player.con.sendStream(data);
+
+        debug("Packed @ bytes of strwam data to @ (@ / @)", stream.size(), player.name, player.con.address, player.uuid());
     }
 
     @Remote(targets = Loc.client, called = Loc.server)
@@ -903,9 +924,10 @@ public class NetServer implements ApplicationListener{
     }
 
     //TODO I don't like where this is, move somewhere else?
+
     /** Queues a building health update. This will be sent in a Call.buildHealthUpdate packet later. */
     public void buildHealthUpdate(Building build){
-        buildHealthChanged.add(build.pos());
+        buildHealthChanged.get(build.tiles.id, IntSet::new).add(build.pos());
     }
 
     /** Should only be used on the headless backend. */
@@ -1095,30 +1117,33 @@ public class NetServer implements ApplicationListener{
             }
 
             if(Groups.player.size() > 0 && buildHealthChanged.size > 0 && timer.get(timerHealthSync, healthSyncTime)){
-                healthSeq.clear();
 
-                var iter = buildHealthChanged.iterator();
-                while(iter.hasNext){
-                    int next = iter.next();
-                    var build = world.build(next);
+                for(var entry : buildHealthChanged){
+                    int key = entry.key;
+                    Tiles tiles = world.getTiles(key);
+                    healthSeq.clear();
+                    var iter = entry.value.iterator();
+                    while(iter.hasNext){
+                        int next = iter.next();
+                        var build = tiles.build(next);
 
-                    //pack pos + health into update list
-                    if(build != null){
-                        healthSeq.add(next, Float.floatToRawIntBits(build.health));
+                        //pack pos + health into update list
+                        if(build != null){
+                            healthSeq.add(next, Float.floatToRawIntBits(build.health));
+                        }
+
+                        //if size exceeds snapshot limit, send it out and begin building it up again
+                        if(healthSeq.size * 4 >= maxSnapshotSize){
+                            Call.buildHealthUpdateTiles((short)key, healthSeq);
+                            healthSeq.clear();
+                        }
                     }
 
-                    //if size exceeds snapshot limit, send it out and begin building it up again
-                    if(healthSeq.size * 4 >= maxSnapshotSize){
-                        Call.buildHealthUpdate(healthSeq);
-                        healthSeq.clear();
+                    //send any residual health updates
+                    if(healthSeq.size > 0){
+                        Call.buildHealthUpdateTiles((short)key, healthSeq);
                     }
                 }
-
-                //send any residual health updates
-                if(healthSeq.size > 0){
-                    Call.buildHealthUpdate(healthSeq);
-                }
-
                 buildHealthChanged.clear();
             }
         }catch(IOException e){

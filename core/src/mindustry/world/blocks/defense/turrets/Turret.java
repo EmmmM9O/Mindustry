@@ -337,7 +337,7 @@ public class Turret extends ReloadTurret{
 
         @Override
         public float drawrot(){
-            return rotation - 90;
+            return rotation - 90 - getTilesRotation();
         }
 
         @Override
@@ -589,11 +589,11 @@ public class Turret extends ReloadTurret{
 
         protected Posc findEnemy(float range){
             if(targetAir && !targetGround){
-                return Units.bestEnemy(team, x, y, range, e -> !e.dead() && !e.isGrounded() && unitFilter.get(e), unitSort);
+                return Units.bestEnemy(team, absoluteX, absoluteY, range, e -> !e.dead() && !e.isGrounded() && unitFilter.get(e), unitSort);
             }else{
                 var ammo = peekAmmo();
                 boolean buildings = targetGround && targetBlocks && (ammo == null || ammo.targetBlocks), missiles = ammo == null || ammo.targetMissiles;
-                return Units.bestTarget(team, x, y, range,
+                return Units.bestTarget(team, absoluteX, absoluteY, range,
                     e -> !e.dead() && unitFilter.get(e) && (e.isGrounded() || targetAir) && (!e.isGrounded() || targetGround) && (missiles || !(e instanceof TimedKillc)),
                     b -> buildings && buildingFilter.get(b), unitSort);
             }
@@ -609,7 +609,7 @@ public class Turret extends ReloadTurret{
             }
 
             if(target == null && canHeal()){
-                target = Units.findAllyTile(team, x, y, range, b -> b.damaged() && b != this);
+                target = Units.findAllyTile(team, absoluteX, absoluteY, range, b -> b.damaged() && b != this);
             }
         }
 
@@ -687,12 +687,12 @@ public class Turret extends ReloadTurret{
 
         protected void shoot(BulletType type){
             float
-            bulletX = x + Angles.trnsx(rotation - 90, shootX, shootY),
-            bulletY = y + Angles.trnsy(rotation - 90, shootX, shootY);
+            bulletX = absoluteX + Angles.trnsx(rotation - 90, shootX, shootY),
+            bulletY = absoluteY + Angles.trnsy(rotation - 90, shootX, shootY);
 
             if(shoot.firstShotDelay > 0){
                 chargeSound.at(bulletX, bulletY, Mathf.random(soundPitchMin, soundPitchMax));
-                type.chargeEffect.at(bulletX, bulletY, rotation);
+                type.chargeEffect.at(bulletX, bulletY, effectHeight(), rotation);
             }
 
             shoot.shoot(barrelCounter, (xOffset, yOffset, angle, delay, mover) -> {
@@ -724,8 +724,8 @@ public class Turret extends ReloadTurret{
 
             float
             xSpread = Mathf.range(xRand),
-            bulletX = x + Angles.trnsx(rotation - 90, shootX + xOffset + xSpread, shootY + yOffset),
-            bulletY = y + Angles.trnsy(rotation - 90, shootX + xOffset + xSpread, shootY + yOffset),
+            bulletX = absoluteX + Angles.trnsx(rotation - 90, shootX + xOffset + xSpread, shootY + yOffset),
+            bulletY = absoluteY + Angles.trnsy(rotation - 90, shootX + xOffset + xSpread, shootY + yOffset),
             shootAngle = rotation + angleOffset + Mathf.range(inaccuracy + type.inaccuracy);
 
             float lifeScl = type.scaleLife ? Mathf.clamp((1 + scaleLifetimeOffset) * Mathf.dst(bulletX, bulletY, targetPos.x, targetPos.y) / type.range, minRange() / type.range, range() / type.range) : 1f;
@@ -733,13 +733,14 @@ public class Turret extends ReloadTurret{
             //TODO aimX / aimY for multi shot turrets?
             handleBullet(type.create(this, team, bulletX, bulletY, shootAngle, -1f, (1f - velocityRnd) + Mathf.random(velocityRnd), lifeScl, null, mover, targetPos.x, targetPos.y), xOffset, yOffset, shootAngle - rotation);
 
-            (shootEffect == null ? type.shootEffect : shootEffect).at(bulletX, bulletY, rotation + angleOffset, type.hitColor);
-            (smokeEffect == null ? type.smokeEffect : smokeEffect).at(bulletX, bulletY, rotation + angleOffset, type.hitColor);
+            (shootEffect == null ? type.shootEffect : shootEffect).at(bulletX, bulletY, effectHeight(), rotation + angleOffset, type.hitColor);
+            (smokeEffect == null ? type.smokeEffect : smokeEffect).at(bulletX, bulletY, effectHeight(), rotation + angleOffset, type.hitColor);
             shootSound.at(bulletX, bulletY, Mathf.random(soundPitchMin, soundPitchMax));
 
             ammoUseEffect.at(
-                x - Angles.trnsx(rotation, ammoEjectBack),
-                y - Angles.trnsy(rotation, ammoEjectBack),
+            absoluteX - Angles.trnsx(rotation, ammoEjectBack),
+            absoluteY - Angles.trnsy(rotation, ammoEjectBack),
+            effectHeight(),
                 rotation * Mathf.sign(xOffset)
             );
 
