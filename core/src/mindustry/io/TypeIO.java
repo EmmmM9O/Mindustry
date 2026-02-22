@@ -457,6 +457,7 @@ public class TypeIO{
 
     public static void writePlan(Writes write, BuildPlan plan){
         write.b(plan.breaking ? (byte)1 : 0);
+        writeTiles(write, plan.tiles);
         write.i(Point2.pack(plan.x, plan.y));
         if(!plan.breaking){
             write.s(plan.block.id);
@@ -470,6 +471,7 @@ public class TypeIO{
         BuildPlan current;
 
         byte type = read.b();
+        Tiles tiles = readTiles(read);
         int position = read.i();
 
         if(world.tile(position) == null){
@@ -477,13 +479,13 @@ public class TypeIO{
         }
 
         if(type == 1){ //remove
-            current = new BuildPlan(Point2.x(position), Point2.y(position));
+            current = new BuildPlan(Point2.x(position), Point2.y(position), tiles);
         }else{ //place
             short block = read.s();
             byte rotation = read.b();
             boolean hasConfig = read.b() == 1;
             Object config = readObject(read);
-            current = new BuildPlan(Point2.x(position), Point2.y(position), rotation, content.block(block));
+            current = new BuildPlan(Point2.x(position), Point2.y(position), tiles, rotation, content.block(block), null);
             //should always happen, but is kept for legacy reasons just in case
             if(hasConfig){
                 current.config = config;

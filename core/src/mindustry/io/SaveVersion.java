@@ -312,6 +312,7 @@ public abstract class SaveVersion extends SaveFileReader{
         }
         world.resetEmpty();
         Log.debug("Load @ extra Tiles in @ms", amount, Time.elapsed());
+        Events.fire(new TilesLoadEvent());
     }
 
     public void readMap(DataInput stream, WorldContext context) throws IOException{
@@ -429,6 +430,7 @@ public abstract class SaveVersion extends SaveFileReader{
             for(BlockPlan block : team.plans){
                 stream.writeShort(block.x);
                 stream.writeShort(block.y);
+                stream.writeShort((short)block.tiles.id);
                 stream.writeShort(block.rotation);
                 stream.writeShort(block.block.id);
                 TypeIO.writeObject(writes, block.config);
@@ -486,11 +488,11 @@ public abstract class SaveVersion extends SaveFileReader{
             var set = new IntSet();
 
             for(int j = 0; j < blocks; j++){
-                short x = stream.readShort(), y = stream.readShort(), rot = stream.readShort(), bid = stream.readShort();
+                short x = stream.readShort(), y = stream.readShort(), id = stream.readShort(), rot = stream.readShort(), bid = stream.readShort();
                 var obj = TypeIO.readObject(reads);
                 //cannot have two in the same position
                 if(set.add(Point2.pack(x, y))){
-                    data.plans.addLast(new BlockPlan(x, y, rot, content.block(bid), obj));
+                    data.plans.addLast(new BlockPlan(x, y, world.getTiles(id), rot, content.block(bid), obj));
                 }
             }
         }

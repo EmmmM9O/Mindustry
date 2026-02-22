@@ -58,7 +58,7 @@ public class RepairTower extends Block{
             if(potentialEfficiency > 0 && (refresh += Time.delta) >= refreshInterval){
                 targets.clear();
                 refresh = 0f;
-                Units.nearby(team, x, y, range, u -> {
+                Units.nearby(team, absoluteX, absoluteY, range, u -> {
                     if(u.damaged()){
                         targets.add(u);
                     }

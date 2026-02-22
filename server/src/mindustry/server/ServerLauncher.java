@@ -44,7 +44,7 @@ public class ServerLauncher implements ApplicationListener{
         Vars.tree = new FileTree();
         Vars.mods = new Mods();
         Vars.preinit();
-        mods.eachPreloader(l -> l.beforeAll());
+        mods.eachPreloader(Preloader::beforeAll);
         Vars.platform = new Platform(){
         };
         Vars.net = new Net(platform.getNet());

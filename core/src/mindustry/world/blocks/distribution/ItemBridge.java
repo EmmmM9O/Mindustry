@@ -160,7 +160,7 @@ public class ItemBridge extends Block{
     }
 
     public Tile findLink(int x, int y){
-        Tile tile = world.tile(x, y);
+        Tile tile = control.input.drawTiles.tile(x, y);
         if(tile != null && lastBuild != null && linkValid(tile, lastBuild.tile) && lastBuild.tile != tile && lastBuild.link == -1){
             return lastBuild.tile;
         }
@@ -216,11 +216,11 @@ public class ItemBridge extends Block{
 
         @Override
         public void drawSelect(){
-            if(linkValid(tile, world.tile(link))){
-                drawInput(world.tile(link));
+            if(linkValid(tile, tiles.tile(link))){
+                drawInput(tiles.tile(link));
             }
 
-            incoming.each(pos -> drawInput(world.tile(pos)));
+            incoming.each(pos -> drawInput(tiles.tile(pos)));
 
             Draw.reset();
         }
@@ -301,7 +301,7 @@ public class ItemBridge extends Block{
             int idx = 0;
             while(idx < incoming.size){
                 int i = incoming.items[idx];
-                Tile other = world.tile(i);
+                Tile other = tiles.tile(i);
                 if(!linkValid(tile, other, false) || ((ItemBridgeBuild)other.build).link != tile.pos()){
                     incoming.removeIndex(idx);
                     idx --;
@@ -324,7 +324,7 @@ public class ItemBridge extends Block{
 
             checkIncoming();
 
-            Tile other = world.tile(link);
+            Tile other = tiles.tile(link);
             if(!linkValid(tile, other)){
                 doDump();
                 warmup = 0f;
@@ -366,7 +366,7 @@ public class ItemBridge extends Block{
 
             Draw.z(Layer.power);
 
-            Tile other = world.tile(link);
+            Tile other = tiles.tile(link);
             if(!linkValid(tile, other)) return;
 
             if(Mathf.zero(Renderer.bridgeOpacity)) return;
@@ -413,7 +413,7 @@ public class ItemBridge extends Block{
 
         @Override
         public boolean acceptItem(Building source, Item item){
-            return hasItems && team == source.team && items.total() < itemCapacity && checkAccept(source, world.tile(link));
+            return hasItems && team == source.team && items.total() < itemCapacity && checkAccept(source, tiles.tile(link));
         }
 
         @Override
@@ -426,7 +426,7 @@ public class ItemBridge extends Block{
             return
                 hasLiquids && team == source.team &&
                 (liquids.current() == liquid || liquids.get(liquids.current()) < 0.2f) &&
-                checkAccept(source, world.tile(link));
+                checkAccept(source, tiles.tile(link));
         }
 
         protected boolean checkAccept(Building source, Tile link){
@@ -462,7 +462,7 @@ public class ItemBridge extends Block{
         }
 
         protected boolean checkDump(Building to){
-            Tile other = world.tile(link);
+            Tile other = tiles.tile(link);
             if(!linkValid(tile, other)){
                 Tile edge = Edges.getFacingEdge(to.tile, tile);
                 int i = relativeTo(edge.x, edge.y);
@@ -484,7 +484,7 @@ public class ItemBridge extends Block{
 
         @Override
         public boolean shouldConsume(){
-            return linkValid(tile, world.tile(link)) && enabled;
+            return linkValid(tile, tiles.tile(link)) && enabled;
         }
 
         @Override

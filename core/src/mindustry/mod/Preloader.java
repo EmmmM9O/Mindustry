@@ -16,4 +16,8 @@ public abstract class Preloader {
 
     public void preload(){
     }
+
+    /*Called on ceate player*/
+    public void resetPlayer(){
+    }
 }

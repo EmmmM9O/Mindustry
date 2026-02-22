@@ -1258,6 +1258,9 @@ abstract class BuildingComp implements Posc, Teamc, Healthc, Buildingc, Timerc, 
         block.drawOverlay(x, y, rotation);
     }
 
+    public void drawAbsoluteSelect(){
+    }
+
     public void drawItemSelection(@Nullable UnlockableContent selection){
         if(selection != null){
             float dx = x - block.size * tilesize/2f, dy = y + block.size * tilesize/2f, s = iconSmall / 4f * selection.fullIcon.ratio(), h = iconSmall / 4f;
@@ -1286,6 +1289,10 @@ abstract class BuildingComp implements Posc, Teamc, Healthc, Buildingc, Timerc, 
         }
 
         drawTeamTop();
+    }
+
+    public void drawAbsolute(){
+
     }
 
     public void payloadDraw(){
@@ -1649,7 +1656,9 @@ abstract class BuildingComp implements Posc, Teamc, Healthc, Buildingc, Timerc, 
 
     /** Update table alignment after configuring.*/
     public void updateTableAlign(Table table){
-        Vec2 pos = Core.input.mouseScreen(x, y - block.size * tilesize / 2f - 1);
+        updateAbsolute();
+        renderer.perspectiveWorldPos(tiles, TilesHandler.v2p.set(absoluteX, absoluteY - block.size * tilesize / 2f - 1));
+        Vec2 pos = Core.input.mouseScreen(TilesHandler.v2p.x, TilesHandler.v2p.y);
         table.setPosition(pos.x, pos.y, Align.top);
     }
 
@@ -2253,6 +2262,7 @@ abstract class BuildingComp implements Posc, Teamc, Healthc, Buildingc, Timerc, 
     @Override
     public void hitbox(Rect out){
         out.setCentered(x, y, block.size * tilesize, block.size * tilesize);
+        //if(tiles != null && tiles.craft != null) TilesHandler.rect(out, tiles.craft.trans());
     }
 
     @Override

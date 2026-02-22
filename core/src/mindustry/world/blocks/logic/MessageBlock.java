@@ -74,6 +74,7 @@ public class MessageBlock extends Block{
         @Override
         public void drawSelect(){
             if(renderer.pixelate) return;
+            updateAbsolute();
 
             Font font = Fonts.outline;
             GlyphLayout l = Pools.obtain(GlyphLayout.class, GlyphLayout::new);
@@ -87,10 +88,10 @@ public class MessageBlock extends Block{
             float offset = 1f;
 
             Draw.color(0f, 0f, 0f, 0.2f);
-            Fill.rect(x, y - tilesize/2f - l.height/2f - offset, l.width + offset*2f, l.height + offset*2f);
+            Fill.rect(absoluteX, absoluteY - tilesize / 2f - l.height / 2f - offset, l.width + offset * 2f, l.height + offset * 2f);
             Draw.color();
             font.setColor(message.length() == 0 ? Color.lightGray : Color.white);
-            font.draw(text, x - l.width/2f, y - tilesize/2f - offset, 90f, Align.left, true);
+            font.draw(text, absoluteX - l.width / 2f, absoluteY - tilesize / 2f - offset, 90f, Align.left, true);
             font.setUseIntegerPositions(ints);
 
             font.getData().setScale(1f);
@@ -209,8 +210,10 @@ public class MessageBlock extends Block{
 
         @Override
         public void updateTableAlign(Table table){
-            Vec2 pos = Core.input.mouseScreen(x, y + size * tilesize / 2f + 1);
-            table.setPosition(pos.x, pos.y, Align.bottom);
+            updateAbsolute();
+            renderer.perspectiveWorldPos(tiles, TilesHandler.v2p.set(absoluteX, absoluteY + size * tilesize / 2f + 1));
+            Vec2 pos = Core.input.mouseScreen(TilesHandler.v2p.x, TilesHandler.v2p.y);
+            table.setPosition(pos.x, pos.y, Align.top);
         }
 
         @Override

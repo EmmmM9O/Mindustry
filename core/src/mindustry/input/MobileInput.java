@@ -152,6 +152,7 @@ public class MobileInput extends InputHandler implements GestureListener{
         r2.setCenter(tile.worldx(), tile.worldy());
 
         for(var plan : selectPlans){
+            if(plan.tiles != tile.tiles) continue;
             Tile other = plan.tile();
 
             if(other == null) continue;
@@ -532,8 +533,8 @@ public class MobileInput extends InputHandler implements GestureListener{
                 mode = rebuildMode ? rebuildSelect : schematicSelect;
 
                 //engage schematic selection mode
-                int tileX = tileX(screenX);
-                int tileY = tileY(screenY);
+                int tileX = cursor.x;
+                int tileY = cursor.y;
                 lineStartX = tileX;
                 lineStartY = tileY;
                 lastLineX = tileX;
@@ -690,11 +691,11 @@ public class MobileInput extends InputHandler implements GestureListener{
             removePlan(getPlan(cursor));
         }else if(mode == placing && isPlacing() && validPlace(cursor.x, cursor.y, block, rotation) && !checkOverlapPlacement(cursor.x, cursor.y, block)){
             //add to selection queue if it's a valid place position
-            selectPlans.add(lastPlaced = new BuildPlan(cursor.x, cursor.y, rotation, block, block.nextConfig()));
+            selectPlans.add(lastPlaced = new BuildPlan(cursor.x, cursor.y, cursor.tiles, rotation, block, block.nextConfig()));
             block.onNewPlan(lastPlaced);
         }else if(mode == breaking && validBreak(linked.x,linked.y) && !hasPlan(linked)){
             //add to selection queue if it's a valid BREAK position
-            selectPlans.add(new BuildPlan(linked.x, linked.y));
+            selectPlans.add(new BuildPlan(linked.x, linked.y, cursor.tiles));
         }else if((commandMode && selectedUnits.size > 0) || commandBuildings.size > 0){
             //handle selecting units with command mode
             commandTap(x, y, queueCommandMode);

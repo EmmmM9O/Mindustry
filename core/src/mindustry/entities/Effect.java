@@ -14,6 +14,7 @@ import mindustry.entities.effect.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
 import mindustry.world.*;
+import mindustry.math.geom.*;
 
 import static mindustry.Vars.*;
 
@@ -103,7 +104,7 @@ public class Effect{
     }
 
     public static void shake(float intensity, float duration, Position loc){
-        if(loc instanceof TilesRelativec t) shake(intensity, duration, t.absoluteX(), t.absoluteY());
+        if(loc instanceof AbsolutePos t) shake(intensity, duration, t.getAbsoluteX(), t.getAbsoluteY());
         else shake(intensity, duration, loc.getX(), loc.getY());
     }
 

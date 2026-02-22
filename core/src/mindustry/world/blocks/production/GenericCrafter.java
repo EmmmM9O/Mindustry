@@ -236,7 +236,7 @@ public class GenericCrafter extends Block{
                 }
 
                 if(wasVisible && Mathf.chanceDelta(updateEffectChance)){
-                    updateEffect.at(x + Mathf.range(size * updateEffectSpread), y + Mathf.range(size * updateEffectSpread));
+                    updateEffect.at(absoluteX + Mathf.range(size * updateEffectSpread), absoluteY + Mathf.range(size * updateEffectSpread));
                 }
             }else{
                 warmup = Mathf.approachDelta(warmup, 0f, warmupSpeed);
@@ -299,7 +299,7 @@ public class GenericCrafter extends Block{
             }
 
             if(wasVisible){
-                craftEffect.at(x, y);
+                craftEffect.at(absoluteX, absoluteY);
             }
             progress %= 1f;
         }

@@ -11,7 +11,7 @@ import static mindustry.Vars.*;
 @Component
 abstract class BlockUnitComp implements Unitc{
     @Import
-    float x, y;
+    float x, y, height;
     @Import Team team;
 
     @ReadOnly transient Building tile;
@@ -29,6 +29,9 @@ abstract class BlockUnitComp implements Unitc{
     @Replace
     @Override
     public void set(Position pos){
+        if(pos instanceof Heightc hc){
+            height = hc.height();
+        }
         if(pos instanceof TilesRelativec abs){
             x = abs.getAbsoluteX();
             y = abs.getAbsoluteY();

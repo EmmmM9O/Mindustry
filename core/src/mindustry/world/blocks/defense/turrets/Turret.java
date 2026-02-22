@@ -493,7 +493,7 @@ public class Turret extends ReloadTurret{
             unit.tile(this);
             unit.rotation(rotation);
             unit.team(team);
-            recoilOffset.trns(rotation, -Mathf.pow(curRecoil, recoilPow) * recoil);
+            recoilOffset.trns(rotation - getTilesRotation(), -Mathf.pow(curRecoil, recoilPow) * recoil);
 
             if(logicControlTime > 0){
                 logicControlTime -= Time.delta;

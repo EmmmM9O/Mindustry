@@ -92,32 +92,14 @@ public class BlockIndexer{
                 }
             }
 
-            for(Tile tile : world.tiles){
-                process(tile);
+            processTiles(world.tiles);
+        });
 
-                addFloorIndex(tile, tile.floor());
-
-                Item drop;
-                int qx = tile.x / quadrantSize, qy = tile.y / quadrantSize;
-                if(tile.block() == Blocks.air){
-                    if((drop = tile.drop()) != null){
-                        //add position of quadrant to list
-                        if(ores[drop.id] == null) ores[drop.id] = new IntSeq[quadWidth][quadHeight];
-                        if(ores[drop.id][qx][qy] == null) ores[drop.id][qx][qy] = new IntSeq(false, 16);
-                        ores[drop.id][qx][qy].add(tile.pos());
-                        allOres.increment(drop);
-                    }
-                }else if((drop = tile.wallDrop()) != null){
-                    //add position of quadrant to list
-                    if(wallOres[drop.id] == null) wallOres[drop.id] = new IntSeq[quadWidth][quadHeight];
-                    if(wallOres[drop.id][qx][qy] == null) wallOres[drop.id][qx][qy] = new IntSeq(false, 16);
-                    wallOres[drop.id][qx][qy].add(tile.pos());
-                    allWallOres.increment(drop);
-                }
+        Events.on(TilesLoadEvent.class, event -> {
+            for(int i = 1; i < world.allTiles.size; i++){
+                Tiles tiles = world.getTiles(i);
+                processTiles(tiles);
             }
-
-            updatePresentOres();
-
             for(Team team : Team.all){
                 var data = state.teams.get(team);
 
@@ -125,7 +107,34 @@ public class BlockIndexer{
                     PrebuildAI.sortPlans(data.plans);
                 }
             }
+            updatePresentOres();
         });
+    }
+
+    public void processTiles(Tiles tiles){
+        for(Tile tile : tiles){
+            process(tile);
+
+            addFloorIndex(tile, tile.floor());
+
+            Item drop;
+            int qx = tile.x / quadrantSize, qy = tile.y / quadrantSize;
+            if(tile.block() == Blocks.air){
+                if((drop = tile.drop()) != null){
+                    //add position of quadrant to list
+                    if(ores[drop.id] == null) ores[drop.id] = new IntSeq[quadWidth][quadHeight];
+                    if(ores[drop.id][qx][qy] == null) ores[drop.id][qx][qy] = new IntSeq(false, 16);
+                    ores[drop.id][qx][qy].add(tile.pos());
+                    allOres.increment(drop);
+                }
+            }else if((drop = tile.wallDrop()) != null){
+                //add position of quadrant to list
+                if(wallOres[drop.id] == null) wallOres[drop.id] = new IntSeq[quadWidth][quadHeight];
+                if(wallOres[drop.id][qx][qy] == null) wallOres[drop.id][qx][qy] = new IntSeq(false, 16);
+                wallOres[drop.id][qx][qy].add(tile.pos());
+                allWallOres.increment(drop);
+            }
+        }
     }
 
     public Seq<Item> getAllPresentOres(){
@@ -297,7 +306,15 @@ public class BlockIndexer{
         return eachBlock(team.team(), team.getX(), team.getY(), range, pred, cons);
     }
 
+    public boolean eachBlock(Teamc team, boolean relPos, float range, Boolf<Building> pred, Cons<Building> cons){
+        return eachBlock(team.team(), team.getX(), team.getY(), relPos, range, pred, cons);
+    }
+
     public boolean eachBlock(@Nullable Team team, float wx, float wy, float range, Boolf<Building> pred, Cons<Building> cons){
+        return eachBlock(team, wx, wy, false, range, pred, cons);
+    }
+
+    public boolean eachBlock(@Nullable Team team, float wx, float wy, boolean relPos, float range, Boolf<Building> pred, Cons<Building> cons){
 
         if(team == null){
             returnBool = false;
@@ -315,7 +332,7 @@ public class BlockIndexer{
             var buildings = team.data().buildingTree;
             if(buildings == null) return false;
             buildings.intersect(wx - range, wy - range, range*2f, range*2f, b -> {
-                if(b.within(wx, wy, range + b.hitSize() / 2f) && pred.get(b)){
+                if(((relPos && b.relWithin(wx, wy, range + b.hitSize() / 2f)) || (!relPos && b.within(wx, wy, range + b.hitSize() / 2f))) && pred.get(b)){
                     breturnArray.add(b);
                 }
             });

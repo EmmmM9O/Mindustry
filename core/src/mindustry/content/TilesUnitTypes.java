@@ -22,6 +22,7 @@ public class TilesUnitTypes{
             hittable = false;
             killable = false;
             targetable = false;
+
             noHitbox = true;
         }};
         movableTiles = new TilesUnitType("movable-tiles"){{
@@ -35,6 +36,8 @@ public class TilesUnitTypes{
             itemCapacity = 0;
             defaultHeight = 16f;
             flying = true;
+
+            noHitbox = true;
         }};
     }
 }

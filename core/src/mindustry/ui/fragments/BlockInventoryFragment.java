@@ -230,7 +230,7 @@ public class BlockInventoryFragment{
     }
 
     private void updateTablePosition(){
-        Vec2 v = Core.input.mouseScreen(build.x + build.block.size * tilesize / 2f, build.y + build.block.size * tilesize / 2f);
+        Vec2 v = Core.input.mouseScreen(build.absoluteX + build.block.size * tilesize / 2f, build.absoluteY + build.block.size * tilesize / 2f);
         table.pack();
         table.setPosition(v.x, v.y, Align.topLeft);
     }

@@ -121,11 +121,11 @@ public class PowerGenerator extends PowerDistributor{
         public void createExplosion(){
             if(shouldExplode()){
                 if(explosionDamage > 0){
-                    Damage.damage(x, y, explosionRadius * tilesize, explosionDamage);
+                    Damage.damage(absoluteX, absoluteY, explosionRadius * tilesize, explosionDamage);
                 }
 
-                explodeEffect.at(this);
-                explodeSound.at(this);
+                explodeEffect.at(absoluteX, absoluteY, effectHeight(), 0);
+                explodeSound.at(absoluteX, absoluteY);
 
                 if(explosionPuddleLiquid != null){
                     for(int i = 0; i < explosionPuddles; i++){

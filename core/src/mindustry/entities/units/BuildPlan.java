@@ -4,6 +4,7 @@ import arc.func.*;
 import arc.math.geom.*;
 import arc.math.geom.QuadTree.*;
 import arc.util.*;
+import mindustry.math.geom.*;
 import mindustry.content.*;
 import mindustry.game.*;
 import mindustry.gen.*;
@@ -12,9 +13,10 @@ import mindustry.world.*;
 import static mindustry.Vars.*;
 
 /** Class for storing build plans. Can be either a place or remove plan. */
-public class BuildPlan implements Position, QuadTreeObject{
+public class BuildPlan implements Position, AbsolutePos, QuadTreeObject{
     /** Position and rotation of this plan. */
     public int x, y, rotation;
+    public Tiles tiles;
     /** Block being placed. If null, this is a breaking plan.*/
     public @Nullable Block block;
     /** Whether this is a break plan.*/
@@ -34,30 +36,32 @@ public class BuildPlan implements Position, QuadTreeObject{
 
     /** This creates a build plan. */
     public BuildPlan(int x, int y, int rotation, Block block){
-        this.x = x;
-        this.y = y;
-        if(block != null) this.rotation = block.planRotation(rotation);
-        this.block = block;
-        this.breaking = false;
+        this(x, y, world.tiles, rotation, block, null);
     }
 
     /** This creates a build plan with a config. */
     public BuildPlan(int x, int y, int rotation, Block block, Object config){
-        this.x = x;
-        this.y = y;
-        if(block != null) this.rotation = block.planRotation(rotation);
-        this.block = block;
-        this.breaking = false;
-        this.config = config;
+        this(x, y, world.tiles, rotation, block, config);
     }
 
     /** This creates a remove plan. */
     public BuildPlan(int x, int y){
+        this(x, y, world.tiles);
+    }
+
+    public BuildPlan(int x, int y, Tiles tiles){
+        this(x, y, tiles, -1, tiles.tile(x, y).block(), null);
+        this.breaking = true;
+    }
+
+    public BuildPlan(int x, int y, Tiles tiles, int rotation, Block block, Object config){
         this.x = x;
         this.y = y;
-        this.rotation = -1;
-        this.block = world.tile(x, y).block();
-        this.breaking = true;
+        this.tiles = tiles;
+        if(block != null) this.rotation = block.planRotation(rotation);
+        this.block = block;
+        this.breaking = false;
+        this.config = config;
     }
 
     public BuildPlan(){
@@ -65,7 +69,7 @@ public class BuildPlan implements Position, QuadTreeObject{
     }
 
     public boolean placeable(Team team){
-        return Build.validPlace(block, team, x, y, rotation);
+        return Build.validPlace(block, team, tiles, x, y, rotation);
     }
 
     public boolean isRotation(Team team){
@@ -112,6 +116,7 @@ public class BuildPlan implements Position, QuadTreeObject{
         BuildPlan copy = new BuildPlan();
         copy.x = x;
         copy.y = y;
+        copy.tiles = tiles;
         copy.rotation = rotation;
         copy.block = block;
         copy.breaking = breaking;
@@ -148,7 +153,7 @@ public class BuildPlan implements Position, QuadTreeObject{
     }
 
     public boolean isDone(){
-        Tile tile = world.tile(x, y);
+        Tile tile = tiles.get(x, y);
         if(tile == null) return true;
         Block tblock = tile.block();
         if(breaking){
@@ -159,11 +164,11 @@ public class BuildPlan implements Position, QuadTreeObject{
     }
 
     public @Nullable Tile tile(){
-        return world.tile(x, y);
+        return tiles.get(x, y);
     }
 
     public @Nullable Building build(){
-        return world.build(x, y);
+        return tiles.build(x, y);
     }
 
     @Override
@@ -175,14 +180,36 @@ public class BuildPlan implements Position, QuadTreeObject{
         }
     }
 
+    public Vec2 absDrawPos(){
+        return TilesHandler.v2p.set(drawx(), drawy()).mul(tiles.craft.trans());
+    }
+
+    public float absDrawx(){
+        return absDrawPos().x;
+    }
+
+    public float absDrawy(){
+        return absDrawPos().y;
+    }
+
     @Override
     public float getX(){
-        return drawx();
+        return absDrawx();
     }
 
     @Override
     public float getY(){
-        return drawy();
+        return absDrawy();
+    }
+
+    @Override
+    public float getAbsoluteX(){
+        return absDrawx();
+    }
+
+    @Override
+    public float getAbsoluteY(){
+        return absDrawy();
     }
 
     @Override

@@ -137,6 +137,21 @@ public abstract class Tiles implements Iterable<Tile>, QuadTreeObject{
         return get(Math.round(x / tilesize), Math.round(y / tilesize));
     }
 
+    @Nullable
+    public Tile tileBuilding(int x, int y){
+        Tile tile = get(x, y);
+        if(tile == null) return null;
+        if(tile.build != null){
+            return tile.build.tile;
+        }
+        return tile;
+    }
+
+    public float realHeight(){
+        if(craft == null) return 0f;
+        return craft.height();
+    }
+
     public void removeCraft(){
         if(craft == null) return;
         craft.remove();
@@ -154,7 +169,7 @@ public abstract class Tiles implements Iterable<Tile>, QuadTreeObject{
     @Override
     public void hitbox(Rect out){
         if(craft == null) out.set(0f, 0f, width * tilesize, height * tilesize);
-        else craft.hitbox(out);
+        else craft.realHitbox(out);
     }
 
     public boolean writeBlock(DataOutput stream, Tile tile, SaveVersion version) throws IOException{

@@ -51,7 +51,7 @@ public class ForceProjector extends Block{
     protected static ForceBuild paramEntity;
     protected static Effect paramEffect;
     protected static final Cons<Bullet> shieldConsumer = bullet -> {
-        if(bullet.team != paramEntity.team && bullet.type.absorbable && !bullet.absorbed && Intersector.isInRegularPolygon(((ForceProjector)(paramEntity.block)).sides, paramEntity.x, paramEntity.y, paramEntity.realRadius(), ((ForceProjector)(paramEntity.block)).shieldRotation, bullet.x, bullet.y)){
+        if(bullet.team != paramEntity.team && bullet.type.absorbable && !bullet.absorbed && Intersector.isInRegularPolygon(((ForceProjector)(paramEntity.block)).sides, paramEntity.absoluteX, paramEntity.absoluteY, paramEntity.realRadius(), ((ForceProjector)(paramEntity.block)).shieldRotation + paramEntity.getTilesRotation(), bullet.x, bullet.y)){
             bullet.absorb();
             paramEffect.at(bullet);
             paramEntity.hit = 1f;
@@ -140,7 +140,7 @@ public class ForceProjector extends Block{
         @Override
         public void onRemoved(){
             float radius = realRadius();
-            if(!broken && radius > 1f) Fx.forceShrink.at(x, y, radius, team.color);
+            if(!broken && radius > 1f) Fx.forceShrink.at(absoluteX, absoluteY, radius, team.color);
             super.onRemoved();
         }
 
@@ -168,7 +168,7 @@ public class ForceProjector extends Block{
             radscl = Mathf.lerpDelta(radscl, broken ? 0f : warmup, 0.05f);
 
             if(Mathf.chanceDelta(buildup / shieldHealth * 0.1f)){
-                Fx.reactorsmoke.at(x + Mathf.range(tilesize / 2f), y + Mathf.range(tilesize / 2f));
+                Fx.reactorsmoke.at(absoluteX + Mathf.range(tilesize / 2f), absoluteY + Mathf.range(tilesize / 2f));
             }
 
             warmup = Mathf.lerpDelta(warmup, efficiency, 0.1f);
@@ -194,7 +194,7 @@ public class ForceProjector extends Block{
             if(buildup >= shieldHealth + phaseShieldBoost * phaseHeat && !broken){
                 broken = true;
                 buildup = shieldHealth;
-                shieldBreakEffect.at(x, y, realRadius(), team.color);
+                shieldBreakEffect.at(absoluteX, absoluteY, realRadius(), team.color);
                 if(team != state.rules.defaultTeam){
                     Events.fire(Trigger.forceProjectorBreak);
                 }
@@ -213,13 +213,13 @@ public class ForceProjector extends Block{
             if(realRadius > 0 && !broken){
                 paramEntity = this;
                 paramEffect = absorbEffect;
-                Groups.bullet.intersect(x - realRadius, y - realRadius, realRadius * 2f, realRadius * 2f, shieldConsumer);
+                Groups.bullet.intersect(absoluteX - realRadius, absoluteY - realRadius, realRadius * 2f, realRadius * 2f, shieldConsumer);
             }
         }
 
         @Override
         public boolean absorbExplosion(float ex, float ey, float damage){
-            boolean absorb = !broken && Intersector.isInRegularPolygon(sides, x, y, realRadius(), shieldRotation, ex, ey);
+            boolean absorb = !broken && Intersector.isInRegularPolygon(sides, absoluteX, absoluteY, realRadius(), shieldRotation + getTilesRotation(), ex, ey);
             if(absorb){
                 absorbEffect.at(ex, ey);
                 hit = 1f;

@@ -42,6 +42,7 @@ public class Renderer extends RendererI{
 
     public Renderer(){
         blocksL = new BlockRenderer();
+        overlays = new OverlayRenderer();
         blocks = blocksL;
         camera = new Camera();
         Shaders.init();

@@ -56,7 +56,7 @@ public class ItemIncinerator extends Block{
         @Override
         public void handleItem(Building source, Item item){
             if(Mathf.chance(effectChance)){
-                effect.at(x, y);
+                effect.at(absoluteX, absoluteY);
             }
         }
 

@@ -95,6 +95,7 @@ public class MapIO{
                     }
                 }
             };
+            tile.tiles = world.tiles;
 
             ver.readRegion("content", stream, counter, ver::readContentHeader);
             if(ver.version >= 11) ver.readRegion("content", stream, counter, ver::skipContentPatches);

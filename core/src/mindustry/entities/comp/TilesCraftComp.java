@@ -134,11 +134,15 @@ abstract class TilesCraftComp implements Unitc, TilesCraftc{
         if(!craftType().drawUnit) return;
     }
 
+    public void realHitbox(Rect out){
+        rect(oriRect(out), trans);
+    }
+
     @Override
     @Replace
     public void hitbox(Rect out){
-        if(craftType().noHitbox) out.setCentered(x, y, 1f, 1f);
-        else rect(oriRect(out), trans);
+        if(craftType().noHitbox) out.setCentered(x, y, 0.1f, 0.1f);
+        else realHitbox(out);
     }
 
     @Override

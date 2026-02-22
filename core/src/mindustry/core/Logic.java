@@ -226,7 +226,7 @@ public class Logic implements ApplicationListener{
         var bounds = tile.block().bounds(tile.x, tile.y, Tmp.r1);
         while(it.hasNext()){
             BlockPlan b = it.next();
-            if(bounds.overlaps(b.block.bounds(b.x, b.y, Tmp.r2))){
+            if(b.tiles == tile.tiles && bounds.overlaps(b.block.bounds(b.x, b.y, Tmp.r2))){
                 b.removed = true;
                 it.remove();
             }

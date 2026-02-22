@@ -430,7 +430,7 @@ public class BulletType extends Content implements Cloneable{
         }
 
         if(heals() && build.team == b.team && !(build.block instanceof ConstructBlock)){
-            healEffect.at(build.x, build.y, 0f, healColor, build.block);
+            healEffect.at(build.x, build.y, build.effectHeight(), 0f, healColor, build.block);
             build.heal(healPercent / 100f * build.maxHealth + healAmount);
 
             hit(b);
@@ -510,7 +510,7 @@ public class BulletType extends Content implements Cloneable{
     }
 
     public void hit(Bullet b, float x, float y){
-        hitEffect.at(x, y, b.rotation(), hitColor);
+        hitEffect.at(x, y, b.height(), b.rotation(), hitColor, null);
         hitSound.at(x, y, hitSoundPitch, hitSoundVolume);
 
         Effect.shake(hitShake, hitShake, b);
@@ -608,7 +608,7 @@ public class BulletType extends Content implements Cloneable{
             createFrags(b, b.x, b.y);
         }
 
-        despawnEffect.at(b.x, b.y, b.rotation(), hitColor);
+        despawnEffect.at(b.x, b.y, b.height(), b.rotation(), hitColor, null);
         despawnSound.at(b);
 
         Effect.shake(despawnShake, despawnShake, b);
@@ -617,7 +617,7 @@ public class BulletType extends Content implements Cloneable{
     /** Called when the bullet is removed for any reason. */
     public void removed(Bullet b){
         if(trailLength > 0 && b.trail != null && b.trail.size() > 0){
-            Fx.trailFade.at(b.x, b.y, trailWidth, trailColor, b.trail.copy());
+            Fx.trailFade.at(b.x, b.y, b.height(), trailWidth, trailColor, b.trail.copy());
         }
     }
 
@@ -753,7 +753,7 @@ public class BulletType extends Content implements Cloneable{
                 }else{
                     Tmp.v1.setZero();
                 }
-                trailEffect.at(b.x + Tmp.v1.x, b.y + Tmp.v1.y, trailRotation ? b.rotation() : trailParam, trailColor);
+                trailEffect.at(b.x + Tmp.v1.x, b.y + Tmp.v1.y, b.height(), trailRotation ? b.rotation() : trailParam, trailColor, null);
             }
         }
 
@@ -764,7 +764,7 @@ public class BulletType extends Content implements Cloneable{
                 }else{
                     Tmp.v1.setZero();
                 }
-                trailEffect.at(b.x + Tmp.v1.x, b.y + Tmp.v1.y, trailRotation ? b.rotation() : trailParam, trailColor);
+                trailEffect.at(b.x + Tmp.v1.x, b.y + Tmp.v1.y, b.height(), trailRotation ? b.rotation() : trailParam, trailColor, null);
             }
         }
     }
@@ -927,7 +927,7 @@ public class BulletType extends Content implements Cloneable{
         bullet.initVel(angle, speed * velocityScl * (velocityScaleRandMin != 1f || velocityScaleRandMax != 1f ? Mathf.random(velocityScaleRandMin, velocityScaleRandMax) : 1f));
         bullet.set(x, y);
         if(owner instanceof Heightc heightc){
-            bullet.height = heightc.height() + 4f;
+            bullet.height = heightc.height() + 2f;
         }
         if(owner instanceof Building bu){
             bullet.height = bu.effectHeight();

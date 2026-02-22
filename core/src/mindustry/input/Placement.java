@@ -27,10 +27,14 @@ public class Placement{
 
     /** Normalize a diagonal line into points. */
     public static Seq<Point2> pathfindLine(boolean conveyors, int startX, int startY, int endX, int endY){
+        return pathfindLine(world.tiles, conveyors, startX, startY, endX, endY);
+    }
+
+    public static Seq<Point2> pathfindLine(Tiles tiles, boolean conveyors, int startX, int startY, int endX, int endY){
         Pools.freeAll(points);
         points.clear();
         if(conveyors && Core.settings.getBool("conveyorpathfinding")){
-            if(astar(startX, startY, endX, endY)){
+            if(astar(tiles, startX, startY, endX, endY)){
                 return points;
             }else{
                 return normalizeLine(startX, startY, endX, endY);
@@ -75,13 +79,17 @@ public class Placement{
     }
 
     public static Seq<Point2> upgradeLine(int startX, int startY, int endX, int endY){
+        return upgradeLine(world.tiles, startX, startY, endX, endY);
+    }
+
+    public static Seq<Point2> upgradeLine(Tiles tiles, int startX, int startY, int endX, int endY){
         closed.clear();
         Pools.freeAll(points);
         points.clear();
-        var build = world.build(startX, startY);
+        var build = tiles.build(startX, startY);
         points.add(Pools.obtain(Point2.class, Point2::new).set(startX, startY));
         while(build instanceof ChainedBuilding chain && (build.tile.x != endX || build.tile.y != endY) && closed.add(build.id)){
-            if(chain.next() == null) return pathfindLine(true, startX, startY, endX, endY);
+            if(chain.next() == null) return pathfindLine(tiles, true, startX, startY, endX, endY);
             build = chain.next();
             points.add(Pools.obtain(Point2.class, Point2::new).set(build.tile.x, build.tile.y));
         }
@@ -276,13 +284,17 @@ public class Placement{
     }
 
     private static float tileHeuristic(Tile tile, Tile other){
+        return tileHeuristic(world.tiles, tile, other);
+    }
+
+    private static float tileHeuristic(Tiles tiles, Tile tile, Tile other){
         Block block = control.input.block;
 
         if((!other.block().alwaysReplace && !(block != null && block.canReplace(other.block()))) || other.floor().isDeep()){
             return 20;
         }else{
             if(parents.containsKey(tile.pos())){
-                Tile prev = world.tile(parents.get(tile.pos(), 0));
+                Tile prev = tiles.tile(parents.get(tile.pos(), 0));
                 if(tile.relativeTo(prev) != other.relativeTo(tile)){
                     return 8;
                 }
@@ -305,8 +317,12 @@ public class Placement{
     }
 
     private static boolean astar(int startX, int startY, int endX, int endY){
-        Tile start = world.tile(startX, startY);
-        Tile end = world.tile(endX, endY);
+        return astar(world.tiles, startX, startY, endX, endY);
+    }
+
+    private static boolean astar(Tiles tiles, int startX, int startY, int endX, int endY){
+        Tile start = tiles.tile(startX, startY);
+        Tile end = tiles.tile(endX, endY);
         if(start == end || start == null || end == null) return false;
 
         costs.clear();
@@ -329,11 +345,11 @@ public class Placement{
             closed.add(Point2.pack(next.x, next.y));
             for(Point2 point : Geometry.d4){
                 int newx = next.x + point.x, newy = next.y + point.y;
-                Tile child = world.tile(newx, newy);
+                Tile child = tiles.tile(newx, newy);
                 if(child != null && validNode(next, child)){
                     if(closed.add(child.pos())){
                         parents.put(child.pos(), next.pos());
-                        costs.put(child.pos(), tileHeuristic(next, child) + baseCost);
+                        costs.put(child.pos(), tileHeuristic(tiles, next, child) + baseCost);
                         queue.add(child);
                     }
                 }
@@ -353,7 +369,7 @@ public class Placement{
             if(newPos == -1) return false;
 
             points.add(Pools.obtain(Point2.class, Point2::new).set(Point2.x(newPos), Point2.y(newPos)));
-            current = world.tile(newPos);
+            current = tiles.tile(newPos);
         }
 
         points.reverse();

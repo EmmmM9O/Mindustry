@@ -27,6 +27,7 @@ import mindustry.io.*;
 import mindustry.io.SaveIO.*;
 import mindustry.maps.Map;
 import mindustry.maps.*;
+import mindustry.mod.*;
 import mindustry.net.*;
 import mindustry.type.*;
 import mindustry.ui.dialogs.*;
@@ -345,10 +346,13 @@ public class Control implements ApplicationListener, Loadable{
 
         player.color.set(Core.settings.getInt("color-0"));
 
-        if(mobile){
-            input = new MobileInput();
-        }else{
-            input = new DesktopInput();
+        mods.eachPreloader(Preloader::resetPlayer);
+        if(input == null){
+            if(mobile){
+                input = new MobileInput();
+            }else{
+                input = new DesktopInput();
+            }
         }
 
         if(state.isGame()){

@@ -484,6 +484,7 @@ public class BlockRenderer extends BlockRendererI{
                 }
 
                 if(build != null){
+                    build.drawAbsolute();
                     if(visible){
                         build.visibleFlags |= (1L << pteam.id);
                         if(!build.wasVisible){

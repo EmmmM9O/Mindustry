@@ -57,7 +57,6 @@ public class DrawTurret extends DrawBlock{
 
     @Override
     public void draw(Building build){
-        ZDraw.realZ(0f);
         Turret turret = (Turret)build.block;
         TurretBuild tb = (TurretBuild)build;
 
@@ -66,12 +65,10 @@ public class DrawTurret extends DrawBlock{
 
         Draw.z(shadowLayer);
 
-        ZDraw.realZ(1f);
         Drawf.shadow(preview, build.x + tb.recoilOffset.x - turret.elevation, build.y + tb.recoilOffset.y - turret.elevation, tb.drawrot());
 
         Draw.z(turretLayer);
 
-        ZDraw.realZ(2f);
         drawTurret(turret, tb);
         drawHeat(turret, tb);
 
@@ -94,7 +91,6 @@ public class DrawTurret extends DrawBlock{
                 part.draw(params);
             }
         }
-        ZDraw.realZ(0f);
     }
 
     public void drawTurret(Turret block, TurretBuild build){

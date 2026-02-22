@@ -9,6 +9,7 @@ import arc.scene.ui.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
+import mindustry.math.geom.*;
 import mindustry.annotations.Annotations.*;
 import mindustry.content.*;
 import mindustry.game.EventType.*;
@@ -20,7 +21,7 @@ import mindustry.world.blocks.environment.*;
 
 import static mindustry.Vars.*;
 
-public class Tile implements Position, QuadTreeObject, Displayable{
+public class Tile implements Position, QuadTreeObject, Displayable, AbsolutePos{
     private static final TileChangeEvent tileChange = new TileChangeEvent();
     private static final TilePreChangeEvent preChange = new TilePreChangeEvent();
     private static final TileFloorChangeEvent floorChange = new TileFloorChangeEvent();
@@ -521,6 +522,11 @@ public class Tile implements Position, QuadTreeObject, Displayable{
         return tiles.craft.height();
     }
 
+    public float rotation(){
+        if(tiles.craft == null) return 0f;
+        return tiles.craft.rotation();
+    }
+
     public Rect getHitbox(Rect rect){
         return rect.setCentered(drawx(), drawy(), block.size * tilesize, block.size * tilesize);
     }
@@ -701,6 +707,16 @@ public class Tile implements Position, QuadTreeObject, Displayable{
     @Override
     public float getY(){
         return drawy();
+    }
+
+    @Override
+    public float getAbsoluteX(){
+        return absDrawx();
+    }
+
+    @Override
+    public float getAbsoluteY(){
+        return absDrawy();
     }
 
     @Override

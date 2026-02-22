@@ -3,6 +3,7 @@ package mindustry.entities.comp;
 import arc.math.*;
 import arc.math.geom.*;
 import arc.util.*;
+import mindustry.math.geom.*;
 import mindustry.annotations.Annotations.*;
 import mindustry.content.*;
 import mindustry.core.*;
@@ -14,7 +15,7 @@ import static mindustry.Vars.*;
 import static mindustry.world.TilesHandler.*;
 
 @Component
-abstract class TilesRelativeComp implements Posc{
+abstract class TilesRelativeComp implements Posc, AbsolutePos{
     transient Tiles tiles;
     transient float absoluteX, absoluteY;
 
@@ -29,10 +30,16 @@ abstract class TilesRelativeComp implements Posc{
         absoluteY = v2p.y;
     }
 
+    public Vec2 getAbsolute(float x, float y){
+        return v2p.set(x, y).mul(tiles.craft.trans());
+    }
+
+    @Override
     public float getAbsoluteX(){
         return absoluteX;
     }
 
+    @Override
     public float getAbsoluteY(){
         return absoluteY;
     }
@@ -40,7 +47,7 @@ abstract class TilesRelativeComp implements Posc{
     @Replace
     @Override
     public float angleTo(Position other){
-        if(other instanceof TilesRelativec abs){
+        if(other instanceof AbsolutePos abs){
             return Angles.angle(getAbsoluteX(), getAbsoluteY(), abs.getAbsoluteX(), abs.getAbsoluteY());
         }
         return Angles.angle(getAbsoluteX(), getAbsoluteY(), other.getX(), other.getY());
@@ -55,7 +62,7 @@ abstract class TilesRelativeComp implements Posc{
     @Replace
     @Override
     public float dst(Position other){
-        if(other instanceof TilesRelativec abs){
+        if(other instanceof AbsolutePos abs){
             return dst(abs.getAbsoluteX(), abs.getAbsoluteY());
         }
         return dst(other.getX(), other.getY());
@@ -64,7 +71,7 @@ abstract class TilesRelativeComp implements Posc{
     @Replace
     @Override
     public float dst2(Position other){
-        if(other instanceof TilesRelativec abs){
+        if(other instanceof AbsolutePos abs){
             return dst2(abs.getAbsoluteX(), abs.getAbsoluteY());
         }
         return dst2(other.getX(), other.getY());
@@ -90,7 +97,7 @@ abstract class TilesRelativeComp implements Posc{
     @Replace
     @Override
     public boolean within(Position other, float dst){
-        if(other instanceof TilesRelativec abs){
+        if(other instanceof AbsolutePos abs){
             return within(abs.getAbsoluteX(), abs.getAbsoluteY(), dst);
         }
         return within(other.getX(), other.getY(), dst);

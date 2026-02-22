@@ -17,7 +17,7 @@ abstract class HeightComp implements Entityc, Heightc{
     }
 
     public float effectHeight(){
-        return height() + 6f;
+        return height() + 0f;
     }
 
     public float getHeight(){

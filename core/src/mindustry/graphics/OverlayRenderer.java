@@ -20,7 +20,7 @@ import mindustry.world.blocks.storage.CoreBlock.*;
 
 import static mindustry.Vars.*;
 
-public class OverlayRenderer{
+public class OverlayRenderer extends OverlayRendererI{
     private static final float indicatorLength = 14f;
     private static final float spawnerMargin = tilesize*11f;
     private static final Rect rect = new Rect();
@@ -68,6 +68,7 @@ public class OverlayRenderer{
         }
     }
 
+    @Override
     public void drawBottom(){
         InputHandler input = control.input;
 
@@ -80,6 +81,7 @@ public class OverlayRenderer{
         input.drawBottom();
     }
 
+    @Override
     public void drawTop(){
 
         if(!player.dead() && ui.hudfrag.shown){
@@ -261,6 +263,7 @@ public class OverlayRenderer{
         }
     }
 
+    @Override
     public void checkApplySelection(Unit u){
         if(unitFade > 0.001f && lastSelect == u){
             Color prev = Draw.getMixColor();

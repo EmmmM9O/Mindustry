@@ -72,12 +72,13 @@ public class LaserTurret extends PowerTurret{
 
                 for(var entry : bullets){
                     float
-                    bulletX = x + Angles.trnsx(rotation - 90, shootX + entry.x, shootY + entry.y),
-                    bulletY = y + Angles.trnsy(rotation - 90, shootX + entry.x, shootY + entry.y),
+                    bulletX = absoluteX + Angles.trnsx(rotation - 90, shootX + entry.x, shootY + entry.y),
+                    bulletY = absoluteY + Angles.trnsy(rotation - 90, shootX + entry.x, shootY + entry.y),
                     angle = rotation + entry.rotation;
 
                     entry.bullet.rotation(angle);
                     entry.bullet.set(bulletX, bulletY);
+                    entry.bullet.height = effectHeight();
                     entry.bullet.time = entry.bullet.type.lifetime * entry.bullet.type.optimalLifeFract;
                     entry.bullet.keepAlive = true;
                     entry.life -= Time.delta * timeScale / Math.max(efficiency, 0.00001f);
@@ -97,7 +98,7 @@ public class LaserTurret extends PowerTurret{
                     liquids.remove(liquid, used);
 
                     if(Mathf.chance(0.06 * used)){
-                        coolEffect.at(x + Mathf.range(size * tilesize / 2f), y + Mathf.range(size * tilesize / 2f));
+                        coolEffect.at(absoluteX + Mathf.range(size * tilesize / 2f), absoluteY + Mathf.range(size * tilesize / 2f), effectHeight(), 0f);
                     }
                 }else{
                     reloadCounter -= edelta();

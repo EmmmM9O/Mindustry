@@ -88,7 +88,7 @@ public class VariableReactor extends PowerGenerator{
             totalProgress += productionEfficiency * Time.delta;
 
             if(Mathf.chanceDelta(effectChance * warmup)){
-                effect.at(x, y, effectColor);
+                effect.at(absoluteX, absoluteY, effectColor);
             }
         }
 

@@ -58,7 +58,7 @@ public class Incinerator extends Block{
         @Override
         public void handleItem(Building source, Item item){
             if(Mathf.chance(0.3)){
-                effect.at(x, y);
+                effect.at(absoluteX, absoluteY);
             }
         }
 
@@ -70,7 +70,7 @@ public class Incinerator extends Block{
         @Override
         public void handleLiquid(Building source, Liquid liquid, float amount){
             if(Mathf.chance(0.02)){
-                effect.at(x, y);
+                effect.at(absoluteX, absoluteY);
             }
         }
 

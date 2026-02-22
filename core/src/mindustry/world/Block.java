@@ -461,6 +461,10 @@ public class Block extends UnlockableContent implements Senseable{
         drawOverlay(x * tilesize + offset, y * tilesize + offset, rotation);
     }
 
+
+    public void drawAbsolutePlace(int x, int y, int rotation, boolean valid){
+    }
+
     /** Draws a region to overlay a specific side of this block. This method makes sure it is placed at the edge of the side. */
     public void drawSideRegion(TextureRegion region, float x, float y, int rotation){
         var p = Geometry.d4[Mathf.mod(rotation, 4)];
@@ -474,8 +478,9 @@ public class Block extends UnlockableContent implements Senseable{
     }
 
     public void drawPotentialLinks(int x, int y){
+        Tiles tiles = control.input.drawTiles;
         if((consumesPower || outputsPower) && hasPower && connectedPower){
-            Tile tile = world.tile(x, y);
+            Tile tile = tiles.tile(x, y);
             if(tile != null){
                 PowerNode.getNodeLinks(tile, this, player.team(), other -> {
                     PowerNode node = (PowerNode)other.block;

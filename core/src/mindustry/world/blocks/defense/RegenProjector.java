@@ -59,7 +59,7 @@ public class RegenProjector extends Block{
         y += offset;
 
         Drawf.dashSquare(baseColor, x, y, range * tilesize);
-        indexer.eachBlock(player.team(), Tmp.r1.setCentered(x, y, range * tilesize), b -> true, t -> {
+        indexer.eachBlock(player.team(), Tmp.r1.setCentered(x, y, range * tilesize), b -> b.tiles == control.input.drawTiles, t -> {
             Drawf.selected(t, Tmp.c1.set(baseColor).a(Mathf.absin(4f, 1f)));
         });
     }
@@ -113,7 +113,7 @@ public class RegenProjector extends Block{
         public void updateTargets(){
             targets.clear();
             taken.clear();
-            indexer.eachBlock(team, Tmp.r1.setCentered(x, y, range * tilesize), b -> true, targets::add);
+            indexer.eachBlock(team, Tmp.r1.setCentered(x, y, range * tilesize), b -> b.tiles == tiles, targets::add);
         }
 
         @Override
@@ -156,7 +156,7 @@ public class RegenProjector extends Block{
                     mendMap.put(pos, Math.min(Math.max(value, healAmount * edelta() * build.block.health / 100f), build.block.health - build.health));
 
                     if(value <= 0 && Mathf.chanceDelta(effectChance * build.block.size * build.block.size)){
-                        effect.at(build.x + Mathf.range(build.block.size * tilesize/2f - 1f), build.y + Mathf.range(build.block.size * tilesize/2f - 1f));
+                        effect.at(build.absoluteX + Mathf.range(build.block.size * tilesize / 2f - 1f), build.absoluteY + Mathf.range(build.block.size * tilesize / 2f - 1f));
                     }
                 }
             }

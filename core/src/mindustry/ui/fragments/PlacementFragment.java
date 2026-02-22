@@ -257,7 +257,8 @@ public class PlacementFragment{
             if(hovered() instanceof Unit unit && unit.type.unlockedNow()){
                 ui.content.show(unit.type());
             }else{
-                var build = world.buildWorld(Core.input.mouseWorld().x, Core.input.mouseWorld().y);
+                var tile = control.input.tileAtF(Core.input.mouseX(), Core.input.mouseY());
+                var build = tile == null ? null : tile.build;
                 Block hovering = build == null ? null : build instanceof ConstructBuild c ? c.current : build.block;
                 Block displayBlock = menuHoverBlock != null ? menuHoverBlock : input.block != null ? input.block : hovering;
                 if(displayBlock != null && displayBlock.unlockedNow()){
@@ -767,7 +768,7 @@ public class PlacementFragment{
         if(unit != null) return unit;
 
         //check tile being hovered over
-        Tile hoverTile = world.tileWorld(Core.input.mouseWorld().x, Core.input.mouseWorld().y);
+        Tile hoverTile = control.input.tileAtF(Core.input.mouseX(), Core.input.mouseY());
         if(hoverTile != null){
             //if the tile has a building, display it
             if(hoverTile.build != null && hoverTile.build.displayable() && !hoverTile.build.inFogTo(player.team())){

@@ -45,7 +45,7 @@ public class DesktopLauncher extends ClientLauncher{
             GpuDetect.init();
 
             new SdlApplication(new DesktopLauncher(arg), new SdlConfig(){{
-                title = "Mindustry";
+                title = "OxyMindustry";
                 maximized = true;
                 coreProfile = true;
                 width = 900;
@@ -53,7 +53,7 @@ public class DesktopLauncher extends ClientLauncher{
 
                 //on Windows, Intel drivers might be buggy with OpenGL 3.x, so only use 2.x. See https://github.com/Anuken/Mindustry/issues/11041
                 if(GpuDetect.hasIntel && !GpuDetect.hasAMD && !GpuDetect.hasNvidia){
-                    allowGl30 = false;
+                    allowGl30 = true;
                     coreProfile = false;
                     glVersions = new int[][]{{2, 1}, {2, 0}};
                 }else if(OS.isMac){

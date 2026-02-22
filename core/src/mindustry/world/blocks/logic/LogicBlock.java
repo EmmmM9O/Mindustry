@@ -76,9 +76,10 @@ public class LogicBlock extends Block{
         config(Integer.class, (LogicBuild entity, Integer pos) -> {
             if(!accessible()) return;
 
+            Tiles tiles = entity.tiles;
             //if there is no valid link in the first place, nobody cares
-            if(!entity.validLink(world.build(pos))) return;
-            var lbuild = world.build(pos);
+            if(!entity.validLink(tiles.build(pos))) return;
+            var lbuild = tiles.build(pos);
             int x = lbuild.tileX(), y = lbuild.tileY();
 
             LogicLink link = entity.links.find(l -> l.x == x && l.y == y);
@@ -90,7 +91,7 @@ public class LogicBlock extends Block{
                     lbuild.enabled = true;
                 }
             }else{
-                entity.links.remove(l -> world.build(l.x, l.y) == lbuild);
+                entity.links.remove(l -> tiles.build(l.x, l.y) == lbuild);
                 entity.links.add(new LogicLink(x, y, entity.findLinkName(lbuild.block), true));
             }
 
@@ -277,7 +278,7 @@ public class LogicBlock extends Block{
                             y += tileY();
                         }
 
-                        Building build = world.build(x, y);
+                        Building build = tiles.build(x, y);
 
                         if(build != null){
                             String bestName = getLinkName(build.block);
@@ -292,6 +293,7 @@ public class LogicBlock extends Block{
 
                 updateCode(new String(bytes, charset));
             }catch(Exception ignored){
+                Log.err(ignored);
                 //invalid logic doesn't matter here
             }
         }
@@ -341,9 +343,9 @@ public class LogicBlock extends Block{
 
                     //store connections
                     for(LogicLink link : links){
-                        link.valid = validLink(world.build(link.x, link.y));
+                        link.valid = validLink(tiles.build(link.x, link.y));
                         if(link.valid){
-                            asm.putConst(link.name, world.build(link.x, link.y));
+                            asm.putConst(link.name, tiles.build(link.x, link.y));
                         }
                     }
 
@@ -354,7 +356,7 @@ public class LogicBlock extends Block{
                     int index = 0;
                     for(LogicLink link : links){
                         if(link.valid){
-                            Building build = world.build(link.x, link.y);
+                            Building build = tiles.build(link.x, link.y);
                             executor.links[index ++] = build;
                             if(build != null) executor.linkIds.add(build.id);
                         }
@@ -395,6 +397,7 @@ public class LogicBlock extends Block{
                     executor.unit.objval = oldUnit;
                     executor.unit.isobj = true;
                 }catch(Exception e){
+                    Log.err(e);
                     //handle malformed code and replace it with nothing
                     executor.load(LAssembler.assemble(code = "", privileged));
                 }
@@ -461,7 +464,7 @@ public class LogicBlock extends Block{
                 var removal = new IntSet();
                 var removeLinks = new Seq<LogicLink>();
                 for(var link : links){
-                    var build = world.build(link.x, link.y);
+                    var build = tiles.build(link.x, link.y);
                     if(build != null){
                         if(!removal.add(build.id)){
                             removeLinks.add(link);
@@ -480,7 +483,7 @@ public class LogicBlock extends Block{
                 for(int i = 0; i < links.size; i++){
                     LogicLink l = links.get(i);
 
-                    var cur = world.build(l.x, l.y);
+                    var cur = tiles.build(l.x, l.y);
 
                     boolean valid = validLink(cur);
                     if(l.lastBuild == null) l.lastBuild = cur;
@@ -496,7 +499,7 @@ public class LogicBlock extends Block{
                             l.name = findLinkName(cur.block);
 
                             //remove redundant links
-                            links.removeAll(o -> world.build(o.x, o.y) == cur && o != l);
+                            links.removeAll(o -> tiles.build(o.x, o.y) == cur && o != l);
 
                             //break to prevent concurrent modification
                             updates = true;
@@ -589,7 +592,7 @@ public class LogicBlock extends Block{
             }
 
             for(LogicLink l : links){
-                Building build = world.build(l.x, l.y);
+                Building build = tiles.build(l.x, l.y);
                 if(validLink(build)){
                     Drawf.square(build.x, build.y, build.block.size * tilesize / 2f + 1f, Pal.place);
                 }
@@ -597,7 +600,7 @@ public class LogicBlock extends Block{
 
             //draw top text on separate layer
             for(LogicLink l : links){
-                Building build = world.build(l.x, l.y);
+                Building build = tiles.build(l.x, l.y);
                 if(validLink(build)){
                     build.block.drawPlaceText(l.name, build.tileX(), build.tileY(), true);
                 }
@@ -648,7 +651,7 @@ public class LogicBlock extends Block{
         }
 
         public boolean validLink(Building other){
-            return other != null && other.isValid() && (privileged || (!other.block.privileged && other.team == team && other.within(this, range + other.block.size*tilesize/2f))) && !(other instanceof ConstructBuild);
+            return other != null && other.tiles == tiles && other.isValid() && (privileged || (!other.block.privileged && other.team == team && other.within(this, range + other.block.size * tilesize / 2f))) && !(other instanceof ConstructBuild);
         }
 
         @Override

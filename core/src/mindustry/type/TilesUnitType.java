@@ -12,6 +12,7 @@ import static mindustry.Vars.*;
 public class TilesUnitType extends UnitType{
     public boolean noHitbox = false;
     public boolean drawUnit = false;
+    public boolean drawFloor = true;
 
     public TilesUnitType(String name){
         super(name);

@@ -118,7 +118,7 @@ public class ConsumeGenerator extends PowerGenerator{
 
             //randomly produce the effect
             if(valid && Mathf.chanceDelta(effectChance)){
-                generateEffect.at(x + Mathf.range(generateEffectRange), y + Mathf.range(generateEffectRange));
+                generateEffect.at(absoluteX + Mathf.range(generateEffectRange), absoluteY + Mathf.range(generateEffectRange));
             }
 
             //make sure the multiplier doesn't change when there is nothing to consume while it's still running
@@ -129,7 +129,7 @@ public class ConsumeGenerator extends PowerGenerator{
             //take in items periodically
             if(hasItems && valid && generateTime <= 0f){
                 consume();
-                consumeEffect.at(x + Mathf.range(generateEffectRange), y + Mathf.range(generateEffectRange));
+                consumeEffect.at(absoluteX + Mathf.range(generateEffectRange), absoluteY + Mathf.range(generateEffectRange));
                 generateTime = 1f;
             }
 

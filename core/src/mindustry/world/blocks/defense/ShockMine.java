@@ -64,11 +64,11 @@ public class ShockMine extends Block{
 
         public void triggered(){
             for(int i = 0; i < tendrils; i++){
-                Lightning.create(team, lightningColor, damage, x, y, Mathf.random(360f), length);
+                Lightning.create(team, lightningColor, damage, absoluteX, absoluteY, Mathf.random(360f), length);
             }
             if(bullet != null){
                 for(int i = 0; i < shots; i++){
-                    bullet.create(this, x, y, (360f / shots) * i + Mathf.random(inaccuracy));
+                    bullet.create(this, absoluteX, absoluteY, (360f / shots) * i + Mathf.random(inaccuracy));
                 }
             }
         }

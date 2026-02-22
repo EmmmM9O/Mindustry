@@ -35,7 +35,7 @@ public abstract class ClientLauncher extends ApplicationCore implements Platform
 
     @Override
     public void setup(){
-        String dataDir = System.getProperty("mindustry.data.dir", OS.env("MINDUSTRY_DATA_DIR"));
+        String dataDir = System.getProperty("oxymindustry.data.dir", OS.env("OXY_MINDUSTRY_DATA_DIR"));
         if(dataDir != null){
             Core.settings.setDataDirectory(files.absolute(dataDir));
         }
@@ -77,8 +77,8 @@ public abstract class ClientLauncher extends ApplicationCore implements Platform
         tree = new FileTree();
         mods = new Mods();
         Vars.preinit();
-        mods.eachPreloader(l -> l.beforeAll());
-        mods.eachPreloader(l -> l.setupGraphics());
+        mods.eachPreloader(Preloader::beforeAll);
+        mods.eachPreloader(Preloader::setupGraphics);
 
         Time.setDeltaProvider(() -> {
             float result = Core.graphics.getDeltaTime() * 60f;

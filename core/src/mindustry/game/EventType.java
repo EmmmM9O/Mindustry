@@ -104,6 +104,10 @@ public class EventType{
     /** Called when a game begins and the world tiles are initiated. About to updates tile proximity and sets up physics for the world(Before WorldLoadEvent) */
     public static class WorldLoadEndEvent{}
 
+    /* Called when all tiles is initiated but Tilescrafts is not initiated **/
+    public static class TilesLoadEvent{
+    }
+
     /** Called when a save loads custom patches. {@link #patches} can be modified in the event handler. */
     public static class ContentPatchLoadEvent{
         public final Seq<String> patches;

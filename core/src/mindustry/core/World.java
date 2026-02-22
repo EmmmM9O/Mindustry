@@ -34,6 +34,7 @@ public class World{
 
     public Tiles tiles = new WorldTiles(0, 0);
     public TilesQuadMap tilesTree = new TilesQuadMap(new Rect(0, 0, 1, 1));
+    public TilesScreenQuadMap tilesScreenTree = new TilesScreenQuadMap(new Rect(0, 0, 1, 1));
     /** The number of times tiles have changed in this session. Used for blocks that need to poll world state, but not frequently. */
     public int tileChanges = -1;
 
@@ -97,6 +98,7 @@ public class World{
             allTiles.set(tiles.id, tiles);
         }
         tilesTree.insert(tiles);
+        tilesScreenTree.insert(tiles);
         Call.createTiles(tiles.type, tiles.width, tiles.height, tiles.id);
     }
 
@@ -106,6 +108,7 @@ public class World{
         }
         allTiles.set(id, tiles);
         tilesTree.insert(tiles);
+        tilesScreenTree.insert(tiles);
     }
 
     public void resetEmpty(){
@@ -125,6 +128,7 @@ public class World{
         tiles.id = -1;
         tiles.removeCraft();
         tilesTree.remove(tiles);
+        tilesScreenTree.remove(tiles);
         Call.removeTiles(id);
     }
 
@@ -140,9 +144,12 @@ public class World{
         emptyQueue.clear();
         if(width != 0 && height != 0){
             Rect rect = new Rect();
-            tiles.hitbox(rect);
+            //tiles.hitbox(rect);
+            rect.set(0f, 0f, tiles.width * tilesize, tiles.height * tilesize);
             tilesTree = new TilesQuadMap(rect);
             tilesTree.insert(tiles);
+            tilesScreenTree = new TilesScreenQuadMap(rect);
+            tilesScreenTree.insert(tiles);
         }
     }
 
@@ -765,6 +772,22 @@ public class World{
         @Override
         protected QuadTree<Tiles> newChild(Rect rect){
             return new TilesQuadMap(rect);
+        }
+    }
+
+    public static class TilesScreenQuadMap extends QuadTree<Tiles>{
+        public TilesScreenQuadMap(Rect bounds){
+            super(bounds);
+        }
+
+        @Override
+        protected void hitbox(Tiles t){
+            renderer.tilesHitbox(t, tmp);
+        }
+
+        @Override
+        protected QuadTree<Tiles> newChild(Rect rect){
+            return new TilesScreenQuadMap(rect);
         }
     }
 }

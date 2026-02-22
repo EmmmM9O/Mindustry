@@ -48,21 +48,18 @@ import static arc.Core.*;
 import static mindustry.Vars.*;
 
 public abstract class InputHandler implements InputProcessor, GestureListener{
-    //not sure where else to put this - maps unique commands based on position to a list of units that will be turned into a unit group
-    static ObjectMap<Vec2, Seq<Unit>> queuedCommands = new ObjectMap<>();
-
     /** Used for dropping items. */
-    final static float playerSelectRange = mobile ? 17f : 11f;
-    final static float unitSelectRadScl = 1f;
-    final static Seq<UnitStance> stancesOut = new Seq<>();
-    final static IntSeq removed = new IntSeq();
-    final static IntSet intSet = new IntSet();
+    public final static float playerSelectRange = mobile ? 17f : 11f;
+    public final static float unitSelectRadScl = 1f;
+    public final static Seq<UnitStance> stancesOut = new Seq<>();
+    public final static IntSeq removed = new IntSeq();
+    public final static IntSet intSet = new IntSet();
     /** Maximum line length. */
-    final static int maxLength = 100;
-    final static Rect r1 = new Rect(), r2 = new Rect();
-    final static Seq<Unit> tmpUnits = new Seq<>(false);
-    final static Seq<Building> tmpBuildings = new Seq<>(false);
-    final static KeyBind[] controlGroupBindings = {
+    public final static int maxLength = 100;
+    public final static Rect r1 = new Rect(), r2 = new Rect();
+    public final static Seq<Unit> tmpUnits = new Seq<>(false);
+    public final static Seq<Building> tmpBuildings = new Seq<>(false);
+    public final static KeyBind[] controlGroupBindings = {
     Binding.blockSelect01,
     Binding.blockSelect02,
     Binding.blockSelect03,
@@ -74,6 +71,8 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
     Binding.blockSelect09,
     Binding.blockSelect10
     };
+    //not sure where else to put this - maps unique commands based on position to a list of units that will be turned into a unit group
+    public static ObjectMap<Vec2, Seq<Unit>> queuedCommands = new ObjectMap<>();
 
     /** If true, there is a cutscene currently occurring in logic. */
     public boolean logicCutscene;
@@ -102,6 +101,8 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
     public Seq<BuildPlan> linePlans = new Seq<>();
     public Seq<BuildPlan> selectPlans = new Seq<>(BuildPlan.class);
     public Queue<BuildPlan> lastPlans = new Queue<>();
+    public Tiles drawTiles = world.tiles;
+    public Tiles lineTiles = world.tiles;
     public @Nullable Unit lastUnit;
     public @Nullable Unit spectating;
 
@@ -115,16 +116,16 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
     /** Groups of units saved to different hotkeys */
     public IntSeq[] controlGroups = new IntSeq[controlGroupBindings.length];
 
-    private Seq<BuildPlan> plansOut = new Seq<>(BuildPlan.class);
-    private QuadTree<BuildPlan> playerPlanTree = new QuadTree<>(new Rect());
+    public Seq<BuildPlan> plansOut = new Seq<>(BuildPlan.class);
+    public QuadTree<BuildPlan> playerPlanTree = new QuadTree<>(new Rect());
 
     public final BlockInventoryFragment inv;
     public final BlockConfigFragment config;
     public final PlanConfigFragment planConfig;
 
-    private WidgetGroup group = new WidgetGroup();
+    public WidgetGroup group = new WidgetGroup();
 
-    private final Eachable<BuildPlan> allPlans = cons -> {
+    public Eachable<BuildPlan> allPlans = cons -> {
         if(!player.dead()){
             player.unit().plans().each(cons);
         }
@@ -132,7 +133,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         linePlans.each(cons);
     };
 
-    private final Eachable<BuildPlan> allSelectLines = cons -> {
+    public Eachable<BuildPlan> allSelectLines = cons -> {
         selectPlans.each(cons);
         linePlans.each(cons);
     };
@@ -218,7 +219,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
     }
 
     @Remote(called = Loc.both, targets = Loc.both, forward = true, unreliable = true)
-    public static void deletePlans(Player player, int[] positions){
+    public static void deletePlans(Player player, Tiles tiles, int[] positions){
         if(net.server() && !netServer.admins.allowAction(player, ActionType.removePlanned, a -> a.plans = positions)){
             throw new ValidateException(player, "Player cannot remove plans.");
         }
@@ -232,7 +233,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
             var plan = it.next();
 
             for(int pos : positions){
-                if(plan.x == Point2.x(pos) && plan.y == Point2.y(pos)){
+                if(plan.x == Point2.x(pos) && plan.y == Point2.y(pos) && plan.tiles == tiles){
                     plan.removed = true;
                     it.remove();
                     continue outer;
@@ -1728,7 +1729,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
 
         //TODO array may be too large?
         if(removed.size > 0 && net.active()){
-            Call.deletePlans(player, removed.toArray());
+            Call.deletePlans(player, world.tiles, removed.toArray());
         }
     }
 
@@ -1757,12 +1758,12 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         updateLine(x1, y1, tileX(getMouseX()), tileY(getMouseY()));
     }
 
-    boolean checkConfigTap(){
+    public boolean checkConfigTap(){
         return config.isShown() && config.getSelected().onConfigureTapped(input.mouseWorldX(), input.mouseWorldY());
     }
 
     /** Handles tile tap events that are not platform specific. */
-    boolean tileTapped(@Nullable Building build){
+    public boolean tileTapped(@Nullable Building build){
         planConfig.hide();
         if(build == null){
             inv.hide();
@@ -1781,7 +1782,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
             if((!config.isShown() && build.shouldShowConfigure(player)) //if the config fragment is hidden, show
             //alternatively, the current selected block can 'agree' to switch config tiles
             || (config.isShown() && config.getSelected().onConfigureBuildTapped(build) && build.shouldShowConfigure(player))){
-                Sounds.click.at(build);
+                Sounds.click.at(build.absoluteX, build.absoluteY);
                 config.showConfig(build);
             }
             //otherwise...
@@ -1821,7 +1822,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
     }
 
     /** Tries to select the player to drop off items, returns true if successful. */
-    boolean tryTapPlayer(float x, float y){
+    public boolean tryTapPlayer(float x, float y){
         if(canTapPlayer(x, y)){
             droppingItem = true;
             return true;
@@ -1829,12 +1830,12 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         return false;
     }
 
-    boolean canTapPlayer(float x, float y){
+    public boolean canTapPlayer(float x, float y){
         return player.within(x, y, playerSelectRange) && !player.dead() && player.unit().stack.amount > 0 && block == null;
     }
 
     /** Tries to begin mining a tile, returns true if successful. */
-    boolean tryBeginMine(Tile tile){
+    public boolean tryBeginMine(Tile tile){
         if(!player.dead() && canMine(tile)){
             player.unit().mineTile = tile;
             return true;
@@ -1843,7 +1844,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
     }
 
     /** Tries to stop mining, returns true if mining was stopped. */
-    boolean tryStopMine(){
+    public boolean tryStopMine(){
         if(!player.dead() && player.unit().mining()){
             player.unit().mineTile = null;
             return true;
@@ -1851,7 +1852,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         return false;
     }
 
-    boolean tryStopMine(Tile tile){
+    public boolean tryStopMine(Tile tile){
         if(!player.dead() && player.unit().mineTile == tile){
             player.unit().mineTile = null;
             return true;
@@ -1859,7 +1860,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         return false;
     }
 
-    boolean tryRepairDerelict(Tile selected){
+    public boolean tryRepairDerelict(Tile selected){
         if(!player.dead() && selected != null && !state.rules.editor && player.team() != Team.derelict && selected.build != null && selected.build.block.unlockedNow() && selected.build.team == Team.derelict &&
             Build.validPlace(selected.block(), player.team(), selected.build.tileX(), selected.build.tileY(), selected.build.rotation)){
 
@@ -1869,12 +1870,12 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         return false;
     }
 
-    boolean canRepairDerelict(Tile tile){
+    public boolean canRepairDerelict(Tile tile){
         return tile != null && tile.build != null && !player.dead() && !state.rules.editor && player.team() != Team.derelict && tile.build.team == Team.derelict && tile.build.block.unlockedNowHost() &&
             Build.validPlace(tile.block(), player.team(), tile.build.tileX(), tile.build.tileY(), tile.build.rotation);
     }
 
-    boolean canMine(Tile tile){
+    public boolean canMine(Tile tile){
         return !Core.scene.hasMouse()
         && !player.dead()
         && player.unit().validMine(tile)
@@ -1883,19 +1884,23 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
     }
 
     /** Returns the tile at the specified MOUSE coordinates. */
-    Tile tileAt(float x, float y){
+    public Tile tileAt(float x, float y){
         return world.tile(tileX(x), tileY(y));
     }
 
-    int rawTileX(){
+    public Tile tileAtF(float x, float y){
+        return world.tile(tileX(x), tileY(y));
+    }
+
+    public int rawTileX(){
         return World.toTile(Core.input.mouseWorld().x);
     }
 
-    int rawTileY(){
+    public int rawTileY(){
         return World.toTile(Core.input.mouseWorld().y);
     }
 
-    int tileX(float cursorX){
+    public int tileX(float cursorX){
         Vec2 vec = Core.input.mouseWorld(cursorX, 0);
         if(selectedBlock()){
             vec.sub(block.offset, block.offset);
@@ -1903,7 +1908,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         return World.toTile(vec.x);
     }
 
-    int tileY(float cursorY){
+    public int tileY(float cursorY){
         Vec2 vec = Core.input.mouseWorld(0, cursorY);
         if(selectedBlock()){
             vec.sub(block.offset, block.offset);
@@ -2198,7 +2203,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         rotation * 90 - 90);
     }
 
-    void iterateLine(int startX, int startY, int endX, int endY, Cons<PlaceLine> cons){
+    public void iterateLine(int startX, int startY, int endX, int endY, Cons<PlaceLine> cons){
         Seq<Point2> points;
         boolean diagonal = Core.input.keyDown(Binding.diagonalPlacement);
 
@@ -2277,7 +2282,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         }
     }
 
-    static class PlaceLine{
+    public static class PlaceLine{
         public int x, y, rotation;
         public boolean last;
     }

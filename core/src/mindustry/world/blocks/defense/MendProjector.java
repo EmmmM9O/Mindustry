@@ -72,7 +72,7 @@ public class MendProjector extends Block{
         
         Drawf.dashCircle(x * tilesize + offset, y * tilesize + offset, range, baseColor);
 
-        indexer.eachBlock(player.team(), x * tilesize + offset, y * tilesize + offset, range, other -> true, other -> Drawf.selected(other, Tmp.c1.set(baseColor).a(Mathf.absin(4f, 1f))));
+        indexer.eachBlock(player.team(), x * tilesize + offset, y * tilesize + offset, true, range, other -> other.tiles == control.input.drawTiles, other -> Drawf.selected(other, Tmp.c1.set(baseColor).a(Mathf.absin(4f, 1f))));
     }
 
     public class MendBuild extends Building implements Ranged{
@@ -101,10 +101,10 @@ public class MendProjector extends Block{
                 float realRange = range + phaseHeat * phaseRangeBoost;
                 charge = 0f;
 
-                indexer.eachBlock(this, realRange, b -> b.damaged() && !b.isHealSuppressed(), other -> {
+                indexer.eachBlock(this, true, realRange, b -> b.damaged() && !b.isHealSuppressed() && b.tiles == tiles, other -> {
                     other.heal(other.maxHealth() * (healPercent + phaseHeat * phaseBoost) / 100f * efficiency);
                     other.recentlyHealed();
-                    Fx.healBlockFull.at(other.x, other.y, other.block.size, baseColor, other.block);
+                    Fx.healBlockFull.at(other.absoluteX, other.absoluteY, other.block.size, baseColor, other.block);
                 });
             }
         }
@@ -119,7 +119,7 @@ public class MendProjector extends Block{
         public void drawSelect(){
             float realRange = range + phaseHeat * phaseRangeBoost;
 
-            indexer.eachBlock(this, realRange, other -> true, other -> Drawf.selected(other, Tmp.c1.set(baseColor).a(Mathf.absin(4f, 1f))));
+            indexer.eachBlock(this, true, realRange, other -> other.tiles == tiles, other -> Drawf.selected(other, Tmp.c1.set(baseColor).a(Mathf.absin(4f, 1f))));
 
             Drawf.dashCircle(x, y, realRange, baseColor);
         }

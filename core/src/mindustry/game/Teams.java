@@ -470,13 +470,19 @@ public class Teams{
      * This does not include deconstructed blocks.*/
     public static class BlockPlan{
         public final short x, y, rotation;
+        public final Tiles tiles;
         public final Block block;
         public final Object config;
         public boolean removed;
 
         public BlockPlan(int x, int y, short rotation, Block block, Object config){
+            this(x, y, world.tiles, rotation, block, config);
+        }
+
+        public BlockPlan(int x, int y, Tiles tiles, short rotation, Block block, Object config){
             this.x = (short)x;
             this.y = (short)y;
+            this.tiles = tiles;
             this.rotation = rotation;
             this.block = block;
             this.config = config;

@@ -98,12 +98,13 @@ public class ContinuousTurret extends Turret{
 
         protected void updateBullet(BulletEntry entry){
             float
-                bulletX = x + Angles.trnsx(rotation - 90, shootX + entry.x, shootY + entry.y),
-                bulletY = y + Angles.trnsy(rotation - 90, shootX + entry.x, shootY + entry.y),
+            bulletX = absoluteX + Angles.trnsx(rotation - 90, shootX + entry.x, shootY + entry.y),
+            bulletY = absoluteY + Angles.trnsy(rotation - 90, shootX + entry.x, shootY + entry.y),
                 angle = rotation + entry.rotation;
 
             entry.bullet.rotation(angle);
             entry.bullet.set(bulletX, bulletY);
+            entry.bullet.height = effectHeight();
 
             //target length of laser
             float shootLength = Math.min(dst(targetPos), range);
@@ -112,7 +113,7 @@ public class ContinuousTurret extends Turret{
             //resulting length of the bullet (smoothed)
             float resultLength = Mathf.approachDelta(curLength, shootLength, aimChangeSpeed);
             //actual aim end point based on length
-            Tmp.v1.trns(rotation, lastLength = resultLength).add(x, y);
+            Tmp.v1.trns(rotation, lastLength = resultLength).add(absoluteX, absoluteY);
 
             entry.bullet.aimX = Tmp.v1.x;
             entry.bullet.aimY = Tmp.v1.y;
@@ -153,7 +154,7 @@ public class ContinuousTurret extends Turret{
                 bullets.add(new BulletEntry(bullet, offsetX, offsetY, angleOffset, 0f));
 
                 //make sure the length updates to the last set value
-                Tmp.v1.trns(rotation, shootY + lastLength).add(x, y);
+                Tmp.v1.trns(rotation, shootY + lastLength).add(absoluteX, absoluteY);
                 bullet.aimX = Tmp.v1.x;
                 bullet.aimY = Tmp.v1.y;
             }

@@ -79,7 +79,7 @@ public class ThermalGenerator extends PowerGenerator{
             productionEfficiency = sum + attribute.env();
 
             if(productionEfficiency > 0.1f && Mathf.chanceDelta(effectChance)){
-                generateEffect.at(x + Mathf.range(3f), y + Mathf.range(3f));
+                generateEffect.at(absoluteX + Mathf.range(3f), absoluteY + Mathf.range(3f));
             }
 
             if(outputLiquid != null){

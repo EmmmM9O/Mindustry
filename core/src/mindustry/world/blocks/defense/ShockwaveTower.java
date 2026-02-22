@@ -81,8 +81,8 @@ public class ShockwaveTower extends Block{
                 if(targets.size > 0){
                     heat = 1f;
                     reloadCounter = 0f;
-                    waveEffect.at(x, y, range, waveColor);
-                    shootSound.at(this);
+                    waveEffect.at(absoluteX, absoluteY, range, waveColor);
+                    shootSound.at(absoluteX, absoluteY);
                     Effect.shake(shake, shake, this);
                     float waveDamage = Math.min(bulletDamage, bulletDamage * falloffCount / targets.size);
 

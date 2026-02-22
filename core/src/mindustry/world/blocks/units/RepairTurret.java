@@ -23,9 +23,6 @@ import mindustry.world.meta.*;
 import static mindustry.Vars.*;
 
 public class RepairTurret extends Block{
-    static final Rect rect = new Rect();
-    static final Rand rand = new Rand();
-
     public int timerTarget = timers++;
     public int timerEffect = timers++;
 
@@ -101,53 +98,6 @@ public class RepairTurret extends Block{
         return new TextureRegion[]{baseRegion, region};
     }
 
-    public static void drawBeam(float x, float y, float rotation, float length, int id, @Nullable Sized target, Team team,
-                                float strength, float pulseStroke, float pulseRadius, float beamWidth,
-                                Vec2 lastEnd, Vec2 offset,
-                                Color laserColor, Color laserTopColor,
-                                TextureRegion laser, TextureRegion laserEnd, TextureRegion laserTop, TextureRegion laserTopEnd){
-        rand.setSeed(id + (target instanceof Entityc e ? e.id() : 0));
-
-        if(target != null){
-            float
-            originX = x + Angles.trnsx(rotation, length),
-            originY = y + Angles.trnsy(rotation, length);
-
-            lastEnd.set(target).sub(originX, originY);
-            lastEnd.setLength(Math.max(2f, lastEnd.len()));
-
-            lastEnd.add(offset.trns(
-            rand.random(360f) + Time.time/2f,
-            Mathf.sin(Time.time + rand.random(200f), 55f, rand.random(target.hitSize() * 0.2f, target.hitSize() * 0.45f))
-            ).rotate(target instanceof Rotc rot ? rot.rotation() : 0f));
-
-            lastEnd.add(originX, originY);
-        }
-
-        if(strength > 0.01f){
-            float
-            originX = x + Angles.trnsx(rotation, length),
-            originY = y + Angles.trnsy(rotation, length);
-
-            Draw.z(Layer.flyingUnit + 1); //above all units
-
-            Draw.color(laserColor);
-
-            float f = (Time.time / 85f + rand.random(1f)) % 1f;
-
-            Draw.alpha(1f - Interp.pow5In.apply(f));
-            Lines.stroke(strength * pulseStroke);
-            Lines.circle(lastEnd.x, lastEnd.y, 1f + f * pulseRadius);
-
-            Draw.color(laserColor);
-            Drawf.laser(laser, laserEnd, originX, originY, lastEnd.x, lastEnd.y, strength * beamWidth);
-            Draw.z(Layer.flyingUnit + 1.1f);
-            Draw.color(laserTopColor);
-            Drawf.laser(laserTop, laserTopEnd, originX, originY, lastEnd.x, lastEnd.y, strength * beamWidth);
-            Draw.color();
-        }
-    }
-
     public class RepairPointBuild extends Building implements Ranged, RotBlock{
         public Unit target;
         public Vec2 offset = new Vec2(), lastEnd = new Vec2();
@@ -159,14 +109,22 @@ public class RepairTurret extends Block{
         }
 
         @Override
+        public float drawrot(){
+            return rotation - 90 - getTilesRotation();
+        }
+
+        @Override
         public void draw(){
             Draw.rect(baseRegion, x, y);
 
             Draw.z(Layer.turret);
-            Drawf.shadow(region, x - (size / 2f), y - (size / 2f), rotation - 90);
-            Draw.rect(region, x, y, rotation - 90);
+            Drawf.shadow(region, x - (size / 2f), y - (size / 2f), drawrot());
+            Draw.rect(region, x, y, drawrot());
+        }
 
-            drawBeam(x, y, rotation, length, id, target, team, strength,
+        @Override
+        public void drawAbsolute(){
+            renderer.drawBeam(absoluteX, absoluteY, effectHeight(), rotation, length, id, target, team, strength,
                 pulseStroke, pulseRadius, beamWidth, lastEnd, offset, laserColor, laserTopColor,
                 laser, laserEnd, laserTop, laserTopEnd);
         }
@@ -194,7 +152,7 @@ public class RepairTurret extends Block{
             boolean healed = false;
 
             if(target != null && efficiency > 0){
-                float angle = Angles.angle(x, y, target.x + offset.x, target.y + offset.y);
+                float angle = Angles.angle(absoluteX, absoluteY, target.x + offset.x, target.y + offset.y);
                 if(Angles.angleDist(angle, rotation) < 30f){
                     healed = true;
                     target.heal(repairSpeed * strength * edelta() * multiplier);
@@ -205,8 +163,8 @@ public class RepairTurret extends Block{
             strength = Mathf.lerpDelta(strength, healed ? 1f : 0f, 0.08f * Time.delta);
 
             if(timer(timerTarget, 20)){
-                rect.setSize(repairRadius * 2).setCenter(x, y);
-                target = Units.closest(team, x, y, repairRadius, Unit::damaged);
+                //rect.setSize(repairRadius * 2).setCenter(absoluteX, absoluteY);
+                target = Units.closest(team, absoluteX, absoluteY, repairRadius, Unit::damaged);
             }
         }
 

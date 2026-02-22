@@ -54,7 +54,7 @@ public class OverdriveProjector extends Block{
 
         Drawf.dashCircle(x * tilesize + offset, y * tilesize + offset, range, baseColor);
 
-        indexer.eachBlock(player.team(), x * tilesize + offset, y * tilesize + offset, range, other -> other.block.canOverdrive, other -> Drawf.selected(other, Tmp.c1.set(baseColor).a(Mathf.absin(4f, 1f))));
+        indexer.eachBlock(player.team(), x * tilesize + offset, y * tilesize + offset, true, range, other -> other.block.canOverdrive && other.tiles == control.input.drawTiles, other -> Drawf.selected(other, Tmp.c1.set(baseColor).a(Mathf.absin(4f, 1f))));
     }
 
     @Override
@@ -105,7 +105,7 @@ public class OverdriveProjector extends Block{
                 float realRange = range + phaseHeat * phaseRangeBoost;
 
                 charge = 0f;
-                indexer.eachBlock(this, realRange, other -> other.block.canOverdrive, other -> other.applyBoost(realBoost(), reload + 1f));
+                indexer.eachBlock(this, true, realRange, other -> other.block.canOverdrive && other.tiles == tiles, other -> other.applyBoost(realBoost(), reload + 1f));
             }
 
             if(efficiency > 0){
@@ -126,7 +126,7 @@ public class OverdriveProjector extends Block{
         public void drawSelect(){
             float realRange = range + phaseHeat * phaseRangeBoost;
 
-            indexer.eachBlock(this, realRange, other -> other.block.canOverdrive, other -> Drawf.selected(other, Tmp.c1.set(baseColor).a(Mathf.absin(4f, 1f))));
+            indexer.eachBlock(this, true, realRange, other -> other.block.canOverdrive && other.tiles == tiles, other -> Drawf.selected(other, Tmp.c1.set(baseColor).a(Mathf.absin(4f, 1f))));
 
             Drawf.dashCircle(x, y, realRange, baseColor);
         }

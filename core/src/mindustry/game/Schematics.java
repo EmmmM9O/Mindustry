@@ -279,9 +279,17 @@ public class Schematics implements Loadable{
         return toPlans(schem, x, y, true);
     }
 
-    /** Creates an array of build plans from a schematic's data, centered on the provided x,y coordinates. */
+    public Seq<BuildPlan> toPlans(Schematic schem, int x, int y, Tiles tiles){
+        return toPlans(schem, x, y, tiles, true);
+    }
+
     public Seq<BuildPlan> toPlans(Schematic schem, int x, int y, boolean checkHidden){
-        return schem.tiles.map(t -> new BuildPlan(t.x + x - schem.width/2, t.y + y - schem.height/2, t.rotation, t.block, t.config))
+        return toPlans(schem, x, y, world.tiles, checkHidden);
+    }
+
+    /** Creates an array of build plans from a schematic's data, centered on the provided x,y coordinates. */
+    public Seq<BuildPlan> toPlans(Schematic schem, int x, int y, Tiles tiles, boolean checkHidden){
+        return schem.tiles.map(t -> new BuildPlan(t.x + x - schem.width / 2, t.y + y - schem.height / 2, tiles, t.rotation, t.block, t.config))
             .removeAll(s -> (checkHidden && !s.block.isVisible() && !(s.block instanceof CoreBlock)) || !s.block.unlockedNow()).sort(Structs.comparingInt(s -> -s.block.schematicPriority));
     }
 
@@ -371,6 +379,10 @@ public class Schematics implements Loadable{
 
     /** Creates a schematic from a world selection. */
     public Schematic create(int x, int y, int x2, int y2){
+        return create(x, y, x2, y2, world.tiles);
+    }
+
+    public Schematic create(int x, int y, int x2, int y2, Tiles tiles_){
         Team team = headless ? null : Vars.player.team();
         NormalizeResult result = Placement.normalizeArea(x, y, x2, y2, 0, false, maxSchematicSize);
         x = result.x;
@@ -386,7 +398,7 @@ public class Schematics implements Loadable{
         boolean found = false;
         for(int cx = x; cx <= x2; cx++){
             for(int cy = y; cy <= y2; cy++){
-                Building linked = world.build(cx, cy);
+                Building linked = tiles_.build(cx, cy);
                 if(linked != null && (!linked.isDiscovered(team) || !linked.wasVisible)) continue;
 
                 Block realBlock = linked == null ? null : linked instanceof ConstructBuild cons ? cons.current : linked.block;
@@ -417,7 +429,7 @@ public class Schematics implements Loadable{
         IntSet counted = new IntSet();
         for(int cx = ox; cx <= ox2; cx++){
             for(int cy = oy; cy <= oy2; cy++){
-                Building tile = world.build(cx, cy);
+                Building tile = tiles_.build(cx, cy);
                 if(tile != null && (!tile.isDiscovered(team) || !tile.wasVisible)) continue;
                 Block realBlock = tile == null ? null : tile instanceof ConstructBuild cons ? cons.current : tile.block;
 
