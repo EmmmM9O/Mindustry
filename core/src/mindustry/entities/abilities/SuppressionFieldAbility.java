@@ -65,6 +65,7 @@ public class SuppressionFieldAbility extends Ability{
 
     @Override
     public void draw(Unit unit){
+        ZDraw.colorLayer(ColorLayer.suppressionField);
         Draw.z(layer);
 
         float rad = orbRadius + Mathf.absin(orbSinScl, orbSinMag);
@@ -98,5 +99,6 @@ public class SuppressionFieldAbility extends Ability{
         }
 
         Draw.reset();
+        ZDraw.reset();
     }
 }

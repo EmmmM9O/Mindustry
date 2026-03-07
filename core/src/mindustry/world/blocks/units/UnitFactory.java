@@ -408,7 +408,7 @@ public class UnitFactory extends UnitBlock{
                 if(progress >= plan.time){
                     progress %= 1f;
 
-                    Unit unit = plan.unit.create(team);
+                    Unit unit = plan.unit.create(team, tiles);
                     if(unit.isCommandable()){
                         if(commandPos != null){
                             unit.command().commandPosition(commandPos);

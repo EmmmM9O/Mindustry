@@ -62,8 +62,8 @@ public class ConstructBlock extends Block{
 
         Team team = tile.team();
         if(!headless && fogControl.isVisibleTile(Vars.player.team(), tile.x, tile.y)){
-            block.breakEffect.at(tile.absDrawx(), tile.absDrawy(), tile.effectHeight(), block.size, block.mapColor, null);
-            //block.breakEffect.at(tile.absDrawx(), tile.absDrawy(), tile.effectHeight(), tile.rotation() , block.mapColor, block.size);
+            //block.breakEffect.at(tile.absDrawx(), tile.absDrawy(), tile.effectHeight(), block.size, block.mapColor, null);
+            block.breakEffect.at(tile.absDrawx(), tile.absDrawy(), tile.effectHeight(), tile.rotation() , block.mapColor, block.size);
             if(shouldPlay()) block.breakSound.at(tile.absolutePos(), block.breakPitchChange ? calcPitch(false) : 1f);
         }
         Events.fire(new BlockBuildEndEvent(tile, builder, team, true, null));
@@ -113,8 +113,8 @@ public class ConstructBlock extends Block{
         }
 
         if(fogControl.isVisibleTile(team, tile.x, tile.y)){
-            //block.placeEffect.at(tile.absDrawx(), tile.absDrawy(), tile.effectHeight(), tile.rotation(), Color.white, block.size);
-            block.placeEffect.at(tile.absDrawx(), tile.absDrawy(), tile.effectHeight(), block.size);
+            block.placeEffect.at(tile.absDrawx(), tile.absDrawy(), tile.effectHeight(), tile.rotation(), Color.white, block.size);
+            //block.placeEffect.at(tile.absDrawx(), tile.absDrawy(), tile.effectHeight(), block.size);
             if(shouldPlay()) block.placeSound.at(tile.absolutePos(), block.placePitchChange ? calcPitch(true) : 1f);
         }
 

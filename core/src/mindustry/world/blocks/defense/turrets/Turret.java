@@ -733,14 +733,14 @@ public class Turret extends ReloadTurret{
             //TODO aimX / aimY for multi shot turrets?
             handleBullet(type.create(this, team, bulletX, bulletY, shootAngle, -1f, (1f - velocityRnd) + Mathf.random(velocityRnd), lifeScl, null, mover, targetPos.x, targetPos.y), xOffset, yOffset, shootAngle - rotation);
 
-            (shootEffect == null ? type.shootEffect : shootEffect).at(bulletX, bulletY, effectHeight(), rotation + angleOffset, type.hitColor);
-            (smokeEffect == null ? type.smokeEffect : smokeEffect).at(bulletX, bulletY, effectHeight(), rotation + angleOffset, type.hitColor);
+            (shootEffect == null ? type.shootEffect : shootEffect).at(bulletX, bulletY, effectHeight(), rotation + angleOffset, type.hitColor, null);
+            (smokeEffect == null ? type.smokeEffect : smokeEffect).at(bulletX, bulletY, effectHeight(), rotation + angleOffset, type.hitColor, null);
             shootSound.at(bulletX, bulletY, Mathf.random(soundPitchMin, soundPitchMax));
 
             ammoUseEffect.at(
-            absoluteX - Angles.trnsx(rotation, ammoEjectBack),
-            absoluteY - Angles.trnsy(rotation, ammoEjectBack),
-            effectHeight(),
+                absoluteX - Angles.trnsx(rotation, ammoEjectBack),
+                absoluteY - Angles.trnsy(rotation, ammoEjectBack),
+                effectHeight(),
                 rotation * Mathf.sign(xOffset)
             );
 

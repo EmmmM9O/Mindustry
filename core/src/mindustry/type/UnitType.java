@@ -511,7 +511,7 @@ public class UnitType extends UnlockableContent implements Senseable{
         return controller.get(unit);
     }
 
-    public Unit create(Team team){
+    public Unit create(Team team, Tiles tiles){
         Unit unit = constructor.get();
         unit.team = team;
         unit.setType(this);
@@ -524,15 +524,24 @@ public class UnitType extends UnlockableContent implements Senseable{
         unit.ammo = ammoCapacity; //fill up on ammo upon creation
         unit.elevation = flying ? 1f : 0;
         unit.height = flying ? defaultHeight : 0f;
+        unit.height += tiles.realHeight();
+        unit.tilesOn = tiles;
         unit.heal();
         if(unit instanceof TimedKillc u){
             u.lifetime(lifetime);
         }
         return unit;
     }
+    public Unit create(Team team){
+        return create(team, world.tiles);
+    }
+
+    public Unit spawn(Team team, float x, float y, float rotation, @Nullable Cons<Unit> cons){
+        return spawn(team, x, y, world.tiles, rotation, cons);
+    }
 
     /** @param cons Callback that gets called with every unit that is spawned. This is used for multi-unit segmented units. */
-    public Unit spawn(Team team, float x, float y, float rotation, @Nullable Cons<Unit> cons){
+    public Unit spawn(Team team, float x, float y, Tiles tiles, float rotation, @Nullable Cons<Unit> cons){
         float offsetX = 0f, offsetY = 0f;
         if(segmentUnits > 1 && sample instanceof Segmentc){
             Tmp.v1.trns(rotation, segmentSpacing * segmentUnits / 2f);
@@ -540,7 +549,7 @@ public class UnitType extends UnlockableContent implements Senseable{
             offsetY = Tmp.v1.y;
         }
 
-        Unit out = create(team);
+        Unit out = create(team, tiles);
         out.rotation = rotation;
         out.set(x + offsetX, y + offsetY);
         out.add();
@@ -1657,11 +1666,13 @@ public class UnitType extends UnlockableContent implements Senseable{
     public void drawEngines(Unit unit){
         if((useEngineElevation ? unit.elevation : 1f) <= 0.0001f) return;
 
+        ZDraw.colorLayer(ColorLayer.engine);
         for(var engine : engines){
             engine.draw(unit);
         }
 
         Draw.color();
+        ZDraw.reset();
     }
 
     public void drawWeapons(Unit unit){
@@ -1720,9 +1731,11 @@ public class UnitType extends UnlockableContent implements Senseable{
     public void drawCell(Unit unit){
         applyColor(unit);
 
+        ZDraw.colorLayer(ColorLayer.cell);
         Draw.color(cellColor(unit));
         Draw.rect(cellRegion, unit.x, unit.y, unit.rotation - 90);
         Draw.reset();
+        ZDraw.reset();
     }
 
     public Color cellColor(Unit unit){

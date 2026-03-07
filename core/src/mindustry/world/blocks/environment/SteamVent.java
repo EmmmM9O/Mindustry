@@ -75,7 +75,8 @@ public class SteamVent extends Floor{
     @Override
     public void renderUpdate(UpdateRenderState state){
         if(state.tile.nearby(-1, -1) != null && state.tile.nearby(-1, -1).block() == Blocks.air && (state.data += Time.delta) >= effectSpacing){
-            effect.at(state.tile.x * tilesize - tilesize, state.tile.y * tilesize - tilesize, effectColor);
+            var pos = state.tile.tiles.trans(state.tile.x * tilesize - tilesize, state.tile.y * tilesize - tilesize);
+            effect.at(pos.x, pos.y,state.tile.effectHeight(), effectColor);
             state.data = 0f;
         }
     }
@@ -83,7 +84,7 @@ public class SteamVent extends Floor{
     //note that only the top right tile works for this; render order reasons.
     public boolean checkAdjacent(Tile tile){
         for(var point : offsets){
-            Tile other = Vars.world.tile(tile.x + point.x, tile.y + point.y);
+            Tile other = tile.tiles.tile(tile.x + point.x, tile.y + point.y);
             if(other == null || other.floor() != this){
                 return false;
             }

@@ -238,15 +238,17 @@ public class Conveyor extends Block implements Autotiler{
             float centerx = 0f, centery = 0f;
 
             if(Math.abs(tx) > Math.abs(ty)){
-                centery = Mathf.clamp((y - unit.y()) / centerDstScl, -centerSpeed, centerSpeed);
-                if(Math.abs(y - unit.y()) < 1f) centery = 0f;
+                centery = Mathf.clamp((absoluteY - unit.y()) / centerDstScl, -centerSpeed, centerSpeed);
+                if(Math.abs(absoluteY  - unit.y()) < 1f) centery = 0f;
             }else{
-                centerx = Mathf.clamp((x - unit.x()) / centerDstScl, -centerSpeed, centerSpeed);
-                if(Math.abs(x - unit.x()) < 1f) centerx = 0f;
+                centerx = Mathf.clamp((absoluteX - unit.x()) / centerDstScl, -centerSpeed, centerSpeed);
+                if(Math.abs(absoluteX  - unit.x()) < 1f) centerx = 0f;
             }
 
+            Vec2 off = tiles.trans((tx * mspeed + centerx) * delta(), (ty * mspeed + centery) * delta());
+
             if(len * itemSpace < 0.9f){
-                unit.impulse((tx * mspeed + centerx) * delta(), (ty * mspeed + centery) * delta());
+                unit.impulse(off.x, off.y);
             }
         }
 

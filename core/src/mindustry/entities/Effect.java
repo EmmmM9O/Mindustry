@@ -190,6 +190,10 @@ public class Effect{
         create(x, y, height, rotation, Color.white, null);
     }
 
+    public void at(float x, float y, float height, float rotation, Color color){
+        create(x, y, height, rotation, color, null);
+    }
+
     public void at(float x, float y, float height, float rotation, Color color, Object data){
         create(x, y, height, rotation, color, data);
     }

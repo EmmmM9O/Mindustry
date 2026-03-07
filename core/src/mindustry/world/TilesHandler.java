@@ -17,6 +17,7 @@ public class TilesHandler{
     1, (Prov<Tiles>)WorldTiles::new,
     2, (Prov<Tiles>)MutableTiles::new
     );
+    public static Seq<Tiles> tTiles = Seq.with();
 
     public static Rect rect(Rect rect, Mat mat){
         v24[0].set(rect.x, rect.y);

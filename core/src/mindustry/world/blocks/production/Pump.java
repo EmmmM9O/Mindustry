@@ -39,8 +39,9 @@ public class Pump extends LiquidBlock{
     @Override
     public void drawPlace(int x, int y, int rotation, boolean valid){
         super.drawPlace(x, y, rotation, valid);
+        Tiles tiles = control.input.drawTiles;
 
-        Tile tile = world.tile(x, y);
+        Tile tile = tiles.tile(x, y);
 
         if(valid && tile != null){
             float amount = 0f;

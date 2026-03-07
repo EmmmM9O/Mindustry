@@ -67,7 +67,7 @@ public class LaserBulletType extends BulletType{
     public void init(Bullet b){
         float resultLength = Damage.collideLaser(b, length, largeHit, laserAbsorb, pierceCap), rot = b.rotation();
 
-        laserEffect.at(b.x, b.y, rot, resultLength * 0.75f);
+        laserEffect.at(b.x, b.y, b.height, rot,Color.white, resultLength * 0.75f);
 
         if(lightningSpacing > 0){
             int idx = 0;

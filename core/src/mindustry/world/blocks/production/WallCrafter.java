@@ -129,16 +129,17 @@ public class WallCrafter extends Block{
 
     @Override
     public void drawPlace(int x, int y, int rotation, boolean valid){
-        float eff = getEfficiency(x, y, rotation, null, null);
+        Tiles tiles = control.input.drawTiles;
+        float eff = getEfficiency(tiles, x, y, rotation, null, null);
 
         drawPlaceText(Core.bundle.formatFloat("bar.drillspeed", 60f / drillTime * eff, 2), x, y, valid);
     }
     @Override
     public boolean canPlaceOn(Tile tile, Team team, int rotation){
-        return getEfficiency(tile.x, tile.y, rotation, null, null) > 0;
+        return getEfficiency(tile.tiles ,tile.x, tile.y, rotation, null, null) > 0;
     }
 
-    float getEfficiency(int tx, int ty, int rotation, @Nullable Cons<Tile> ctile, @Nullable Intc2 cpos){
+    float getEfficiency(Tiles tiles,int tx, int ty, int rotation, @Nullable Cons<Tile> ctile, @Nullable Intc2 cpos){
         float eff = 0f;
         int cornerX = tx - (size-1)/2, cornerY = ty - (size-1)/2, s = size;
 
@@ -168,7 +169,7 @@ public class WallCrafter extends Block{
                 cpos.get(rx, ry);
             }
 
-            Tile other = world.tile(rx, ry);
+            Tile other = tiles.tile(rx, ry);
             if(other != null && other.solid()){
                 float at = other.block().attributes.get(attribute);
                 eff += at;
@@ -193,12 +194,12 @@ public class WallCrafter extends Block{
             warmup = Mathf.approachDelta(warmup, Mathf.num(efficiency > 0), 1f / 40f);
             float dx = Geometry.d4x(rotation) * 0.5f, dy = Geometry.d4y(rotation) * 0.5f;
 
-            float eff = getEfficiency(tile.x, tile.y, rotation, dest -> {
+            float eff = getEfficiency(tile.tiles, tile.x, tile.y, rotation, dest -> {
                 //TODO make not chance based?
                 if(wasVisible && cons && Mathf.chanceDelta(updateEffectChance * warmup)){
+                    Vec2 pos = dest.tiles.trans(dest.worldx() + Mathf.range(3f) - dx * tilesize, dest.worldy() + Mathf.range(3f) - dy * tilesize);
                     updateEffect.at(
-                        dest.worldx() + Mathf.range(3f) - dx * tilesize,
-                        dest.worldy() + Mathf.range(3f) - dy * tilesize,
+                        pos.x, pos.y, dest.effectHeight(),
                         dest.block().mapColor
                     );
                 }
@@ -236,7 +237,7 @@ public class WallCrafter extends Block{
 
             int bs = (rotation == 0 || rotation == 3) ? 1 : -1;
             idx = 0;
-            getEfficiency(tile.x, tile.y, rotation, null, (cx, cy) -> {
+            getEfficiency(tile.tiles ,tile.x, tile.y, rotation, null, (cx, cy) -> {
                 int sign = idx++ >= size/2 && size % 2 == 0 ? -1 : 1;
                 float vx = (cx - dx) * tilesize, vy = (cy - dy) * tilesize;
                 Draw.z(Layer.blockOver);

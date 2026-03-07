@@ -84,7 +84,7 @@ public class TypeIO{
             write.d(d);
         }else if(object instanceof Building b){
             write.b(12);
-            write.s(b.id);
+            write.s(b.tiles.id);
             write.i(b.pos());
         }else if(object instanceof BuildingBox b){
             write.b(12);

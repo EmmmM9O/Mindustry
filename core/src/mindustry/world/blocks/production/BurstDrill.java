@@ -113,8 +113,8 @@ public class BurstDrill extends Drill{
 
                 if(wasVisible){
                     Effect.shake(shake, shake, this);
-                    drillSound.at(x, y, 1f + Mathf.range(drillSoundPitchRand), drillSoundVolume);
-                    drillEffect.at(x + Mathf.range(drillEffectRnd), y + Mathf.range(drillEffectRnd), dominantItem.color);
+                    drillSound.at(absoluteX, absoluteY, 1f + Mathf.range(drillSoundPitchRand), drillSoundVolume);
+                    drillEffect.at(absoluteX + Mathf.range(drillEffectRnd), absoluteY + Mathf.range(drillEffectRnd), dominantItem.color);
                 }
             }
         }

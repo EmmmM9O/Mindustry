@@ -351,9 +351,9 @@ public class Block extends UnlockableContent implements Senseable{
     /** If true, this block can be placed even in "dark" areas. Only used for editor static walls. */
     public boolean ignoreBuildDarkness = false;
     /** Effect for placing the block. Passes size as rotation. */
-    public Effect placeEffect = Fx.placeBlock;
+    public Effect placeEffect = Fx.placeBlockRot;
     /** Effect for breaking the block. Passes size as rotation. */
-    public Effect breakEffect = Fx.breakBlock;
+    public Effect breakEffect = Fx.breakBlockRot;
     /** Effect for destroying the block. */
     public Effect destroyEffect = Fx.dynamicExplosion;
     /** Multiplier for cost of research in tech tree. */

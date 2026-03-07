@@ -35,6 +35,7 @@ public class Lightning{
     }
 
     private static void createLightningInternal(@Nullable Bullet hitter, int seed, Team team, Color color, float damage, float x, float y, float rotation, int length){
+        float height = hitter.height();
         random.setSeed(seed);
         hit.clear();
 
@@ -43,7 +44,8 @@ public class Lightning{
         bhit = false;
 
         for(int i = 0; i < length / 2; i++){
-            hitCreate.create(null, team, x, y, rotation, damage * (hitter == null ? 1f : hitter.damageMultiplier()), 1f, 1f, hitter);
+            Bullet b = hitCreate.create(null, team, x, y, rotation, damage * (hitter == null ? 1f : hitter.damageMultiplier()), 1f, 1f, hitter);
+            b.height = height;
             lines.add(new Vec2(x + Mathf.range(3f), y + Mathf.range(3f)));
 
             if(lines.size > 1){
@@ -87,6 +89,6 @@ public class Lightning{
             }
         }
 
-        Fx.lightning.at(x, y, rotation, color, lines);
+        Fx.lightning.at(x, y, height, rotation, color, lines);
     }
 }

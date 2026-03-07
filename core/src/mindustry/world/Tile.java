@@ -541,12 +541,12 @@ public class Tile implements Position, QuadTreeObject, Displayable, AbsolutePos{
     }
 
     public float effectHeight(){
-        if(tiles.craft == null) return 6f;
+        if(tiles.craft == null) return 0f;
         return tiles.craft.effectHeight();
     }
 
     public Vec2 absolutePos(){
-        return TilesHandler.v2p.set(drawx(), drawy()).mul(tiles.craft.trans());
+        return tiles.trans(drawx(), drawy());
     }
 
     public float absoluteX(){

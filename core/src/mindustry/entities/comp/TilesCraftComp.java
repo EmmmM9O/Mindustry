@@ -12,6 +12,7 @@ import mindustry.game.*;
 import mindustry.world.*;
 
 import static mindustry.world.TilesHandler.*;
+import static mindustry.Vars.*;
 
 @Component
 abstract class TilesCraftComp implements Unitc, TilesCraftc{
@@ -132,6 +133,28 @@ abstract class TilesCraftComp implements Unitc, TilesCraftc{
     @MethodPriority(-1)
     public void draw(){
         if(!craftType().drawUnit) return;
+    }
+
+    @Replace
+    @Override
+    public void updateTiles(){
+        if(tiles == world.tiles){
+            this.tilesOn = tiles;
+            return;
+        }
+        tTiles.clear();
+        Tiles ori = tilesOn;
+
+        world.tilesTree.contains(x, y, t->{
+            if(t != tiles && t.realHeight() - 5f <= height){
+                this.tilesOn = t;
+                if(tileOn() != null) tTiles.add(t);
+            }
+        });
+
+        tTiles.sort(t->t.realHeight());
+        Tiles p = tTiles.peek();
+        this.tilesOn = p == null ? ori : p;
     }
 
     public void realHitbox(Rect out){

@@ -2798,5 +2798,23 @@ public class Fx{
         Lines.rect(rect);
 
         Draw.reset();
+    }),
+
+    placeBlockRot = new Effect(16, e -> {
+        int size = (int)e.data;
+        color(Pal.accent);
+        stroke(3f - e.fin() * 2f);
+        Lines.square(e.x, e.y, tilesize / 2f * size + e.fin() * 3f, e.rotation);
+    }),
+
+    breakBlockRot = new Effect(12, e -> {
+        int size = (int)e.data;
+        color(Pal.remove);
+        stroke(3f - e.fin() * 2f);
+        Lines.square(e.x, e.y, tilesize / 2f * size + e.fin() * 3f, e.rotation);
+
+        randLenVectors(e.id, 3 + (int)(size * 3), size * 2f + (tilesize * size) * e.finpow(), (x, y) -> {
+            Fill.square(e.x + x, e.y + y, 1f + e.fout() * (3f + size));
+        });
     });
 }

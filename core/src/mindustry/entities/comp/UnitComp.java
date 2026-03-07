@@ -53,6 +53,7 @@ abstract class UnitComp implements Heightc, Healthc, Physicsc, Hitboxc, Statusc,
     boolean spawnedByCore;
     double flag;
 
+    transient Tiles tilesOn = world.tiles;
     transient @Nullable Trail trail;
     //TODO could be better represented as a unit
     transient @Nullable UnitType dockedType;
@@ -69,6 +70,40 @@ abstract class UnitComp implements Heightc, Healthc, Physicsc, Hitboxc, Statusc,
     transient float drownTime;
     transient float splashTimer;
     transient @Nullable Floor lastDrownFloor;
+
+    public Vec2 transT(float x, float y){
+        if(tilesOn.craft == null) return TilesHandler.v2p.set(x, y);
+        return tilesOn.trans(x, y);
+    }
+
+    public Vec2 invT(float x, float y){
+        if(tilesOn.craft == null) return TilesHandler.v2p.set(x, y);
+        return tilesOn.inv(x, y);
+    }
+
+    @Override
+    public int tileX(){
+        return World.toTile(invT(x, y).x);
+    }
+
+    @Override
+    public int tileY(){
+        return World.toTile(invT(x, y).y);
+    }
+
+    @Override
+    @Nullable
+    public Building buildOn(){
+        Vec2 pos = invT(x, y);
+        return tilesOn.buildWorld(x, y);
+    }
+
+    @Override
+    @Nullable
+    public Tile tileOn(){
+        Vec2 pos = invT(x, y);
+        return tilesOn.tileWorld(pos.x, pos.y);
+    }
 
     public boolean checkTarget(boolean targetAir, boolean targetGround){
         return (isGrounded() && targetGround) || (isFlying() && targetAir);
@@ -115,6 +150,7 @@ abstract class UnitComp implements Heightc, Healthc, Physicsc, Hitboxc, Statusc,
         if(!type.canBoost || dead) return;
 
         elevation = Mathf.approachDelta(elevation, type.canBoost ? Mathf.num(boost || onSolid() || (isFlying() && !canLand())) : 0f, type.riseSpeed);
+        height = Mathf.approachDelta(height, tiles.realHeight() + type.defaultHeight, type.riseSpeed * type.defaultHeight);
     }
 
     /** Move based on preferred unit movement type. */
@@ -623,11 +659,28 @@ abstract class UnitComp implements Heightc, Healthc, Physicsc, Hitboxc, Statusc,
         drownTime = Mathf.clamp(drownTime);
     }
 
+    public void updateTiles(){
+        TilesHandler.tTiles.clear();
+        Tiles ori = tilesOn;
+
+        world.tilesTree.contains(x, y, t->{
+            if(t.realHeight() - 5f <= height){
+                this.tilesOn = t;
+                if(tileOn() != null) TilesHandler.tTiles.add(t);
+            }
+        });
+
+        TilesHandler.tTiles.sort(t->t.realHeight());
+        Tiles p = TilesHandler.tTiles.peek();
+        this.tilesOn = p == null ? ori : p;
+    }
+
     @Override
     public void update(){
 
         type.update(self());
 
+        updateTiles();
         //update bounds
 
         if(type.bounded){
@@ -673,6 +726,10 @@ abstract class UnitComp implements Heightc, Healthc, Physicsc, Hitboxc, Statusc,
 
         Floor floor = floorOn();
         Tile tile = tileOn();
+
+        if(!isFlying() && !dead){
+            height = Mathf.approachDelta(height, tilesOn.realHeight(), 2f * type.fallSpeed * type.defaultHeight);
+        }
 
         if(isFlying() != wasFlying){
             if(wasFlying){
@@ -778,6 +835,7 @@ abstract class UnitComp implements Heightc, Healthc, Physicsc, Hitboxc, Statusc,
 
             //move down
             elevation -= type.fallSpeed * Time.delta;
+            height = Mathf.approachDelta(height, tilesOn.realHeight(), type.fallSpeed * type.defaultHeight);
 
             if(isGrounded() || health <= -maxHealth * type.wreckHealthMultiplier){
                 Call.unitDestroy(id);

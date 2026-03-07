@@ -133,6 +133,11 @@ public abstract class Tiles implements Iterable<Tile>, QuadTreeObject{
     }
 
     @Nullable
+    public Building buildWorld(float x, float y){
+        return build(Math.round(x / tilesize), Math.round(y / tilesize));
+    }
+
+    @Nullable
     public Tile tileWorld(float x, float y){
         return get(Math.round(x / tilesize), Math.round(y / tilesize));
     }
@@ -150,6 +155,22 @@ public abstract class Tiles implements Iterable<Tile>, QuadTreeObject{
     public float realHeight(){
         if(craft == null) return 0f;
         return craft.height();
+    }
+
+    public Vec2 trans(float x, float y){
+        return trans(TilesHandler.v2p.set(x, y));
+    }
+
+    public Vec2 trans(Vec2 pos){
+        return pos.mul(craft.trans());
+    }
+
+    public Vec2 inv(float x, float y){
+        return inv(TilesHandler.v2p.set(x, y));
+    }
+
+    public Vec2 inv(Vec2 pos){
+        return pos.mul(craft.inv());
     }
 
     public void removeCraft(){
